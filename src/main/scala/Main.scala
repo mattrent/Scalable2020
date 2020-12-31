@@ -21,7 +21,7 @@ object Main {
 			  (index, elem) => if (index == 0) elem.drop(1) else elem
 		  )
 		  .map(line => line.split(","))
-		  .map(parts => (parts.head.toLong, parts.tail))
+		  .map(parts => (parts(0).toLong, parts(1)))
 
 		val edges = sc.textFile("data/musae_git_edges.csv")
 		  .mapPartitionsWithIndex(
@@ -33,7 +33,7 @@ object Main {
 		/* create the graph; now every node is connected to a username, and nodes are connected according to edges; every edge has weight 1 */
 		var graph = Graph.fromEdgeTuples(edges, "Default")
 		graph = graph.joinVertices(nodes) {
-			(id, _, attributes) => attributes(0)
+			(id, _, name) => name
 		}
 
 		graph.triplets.collect.foreach(println)
