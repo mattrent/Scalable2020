@@ -1,4 +1,5 @@
 import utils.GraphBuilder
+import utils.Algorithms
 import org.apache.spark.graphx.lib.LabelPropagation
 import org.apache.spark.sql.SparkSession
 
@@ -22,6 +23,9 @@ object Main extends App {
 
 		val graphLabProp = LabelPropagation.run(graph,5)
 		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))
+
+		val lpaGraph = Algorithms.labelPropagation(sc,graph);
+		lpaGraph.vertices.collect.foreach(println)
 
 	}
 
