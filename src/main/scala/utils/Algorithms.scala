@@ -1,17 +1,19 @@
 package utils
 
 import org.apache.spark.SparkContext
-import org.apache.spark.graphx.{EdgeTriplet, Edge, Graph, VertexId}
+import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, VertexId}
+
 
 object Algorithms {
 	def SNN(graph: Graph[String, Int]): Graph[String, Int] = {
-		var adj = scala.collection.mutable.Map.empty[Int, Set[Int]]
-
-		graph.edges.foreach((e:Edge[Int]) => {
-			
-		})
-
-		val graphSNN = graph
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
+		val graphSNN = Graph(graph.vertices,
+			graph.edges.mapValues(
+				e => neighbors(e.srcId)
+				  .intersect(neighbors(e.dstId))
+				  .length
+			)
+		)
 
 		graphSNN
 	}
