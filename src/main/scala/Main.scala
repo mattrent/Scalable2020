@@ -20,12 +20,16 @@ object Main extends App {
 		val graph = GraphBuilder.buildGraphFromFiles(sc, "data/musae_git_target.csv", "data/musae_git_edges.csv", true)
 
 		//graph.triplets.collect.foreach(println)
+		/*val graphLabProp = LabelPropagation.run(graph,5)
+		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
-		val graphLabProp = LabelPropagation.run(graph,5)
-		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))
-
-		val lpaGraph = Algorithms.labelPropagation(sc,graph);
-		lpaGraph.vertices.collect.foreach(println)
+		if (args.length > 0 && args(0) == "Trent") {
+			val graphSNN = Algorithms.SNN(graph)
+			graphSNN.triplets.collect.foreach(println)
+		} else {
+			val lpaGraph = Algorithms.labelPropagation(sc, graph);
+			lpaGraph.vertices.collect.foreach(println)
+		}
 
 	}
 
