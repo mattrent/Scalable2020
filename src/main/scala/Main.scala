@@ -27,8 +27,10 @@ object Main extends App {
 			val graphSNN = Algorithms.SNN(graph)
 			graphSNN.triplets.collect.foreach(println)
 		} else {
-			val lpaGraph = Algorithms.labelPropagation(sc, graph);
-			lpaGraph.vertices.collect.foreach(println)
+			/**val lpaGraph = Algorithms.labelPropagation(sc, graph,5);
+			lpaGraph.vertices.collect.foreach(println)*/
+			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
+			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))
 		}
 
 	}
