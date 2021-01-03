@@ -82,4 +82,5 @@ object Algorithms {
 			mergeMsg = mergeMessage)
 
 	}
-}
+
+	}

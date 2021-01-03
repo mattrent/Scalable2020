@@ -1,5 +1,6 @@
 import utils.GraphBuilder
 import utils.Algorithms
+
 import org.apache.spark.graphx.lib.LabelPropagation
 import org.apache.spark.sql.SparkSession
 
