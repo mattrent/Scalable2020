@@ -21,7 +21,7 @@ object Algorithms {
 	}
 
 
-  def labelPropagationPregel(graph: Graph[String, Long], maxSteps: Int): Graph[VertexId, Long] = {
+  def labelPropagationPregel(graph: Graph[String, Int], maxSteps: Int): Graph[VertexId, Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		//inizializzazione delle label di ogni nodo del grafo con una etichetta diversa per ogni nodo
@@ -35,7 +35,7 @@ object Algorithms {
 		 * @param e tripletta formata da ( (srcNodeName, srcLabelNode), (dstNodeName, dstLabelNode), attr )
 		 * @return iteratore per muoverci nelle coppie contenenti le informazioni del nodo e i messaggi ricevuti da tale nodo
 		 */
-		def sendMessage(e: EdgeTriplet[VertexId, Long]): Iterator[(VertexId, Map[VertexId, Long])] = {
+		def sendMessage(e: EdgeTriplet[VertexId, Int]): Iterator[(VertexId, Map[VertexId, Long])] = {
 			Iterator((e.srcId, Map(e.dstAttr -> 1L)), (e.dstId, Map(e.srcAttr -> 1L)))
 		}
 
