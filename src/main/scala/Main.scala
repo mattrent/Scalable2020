@@ -26,10 +26,13 @@ object Main extends App {
 		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
 		if (args.length > 0 && args(0) == "Trent") {
-			/*val graphSNN = Algorithms.SNN(graph)
-			graphSNN.triplets.collect.foreach(println)*/
+			//TODO: test LPA performance on preprocessed graph
+			val graphSNN = Algorithms.SNN(graph).subgraph((e => e.attr != 0))
+			/*graphSNN.triplets.collect.foreach(println)
+			GraphBuilder.export(graphSNN, "graphSNN.gexf")
+			println("Edges with weight = 0: " + graphSNN.edges.filter(e => e.attr == 0).count()) */
 
-			args(1) match {
+			/*args(1) match {
 				case "pregel" => {
 					println("Using Pregel...")
 					spark.time(
@@ -48,7 +51,9 @@ object Main extends App {
 						LabelPropagation.run(graph, 30)
 					)
 				}
-			}
+			}*/
+
+
 			//lpaGraph.vertices.groupBy(_._2._1).mapValues(_.size).foreach(println)
 		} else {
 			/**val lpaGraph = Algorithms.labelPropagation(sc, graph,5);
