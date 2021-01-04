@@ -10,10 +10,11 @@ object Main extends App {
 		val spark = SparkSession
 		  .builder
 		  .appName("Scalable2020")
-		  .config("spark.master", "local")
+		  .config("spark.master", "local[8]")
 		  .getOrCreate()
 
 		val sc = spark.sparkContext
+		sc.setLogLevel("ERROR")
 
 		/* loading the files, skipping first line (csv header) */
 		/* load text file => drop first line => split on commas => create the node structure (or the edge structure) by converting the ids to long */
@@ -27,8 +28,28 @@ object Main extends App {
 		if (args.length > 0 && args(0) == "Trent") {
 			/*val graphSNN = Algorithms.SNN(graph)
 			graphSNN.triplets.collect.foreach(println)*/
-			val lpaGraph = Algorithms.labelPropagationMR(graph, 5)
-			lpaGraph.vertices.groupBy(_._2._1).mapValues(_.size).foreach(println)
+
+			args(1) match {
+				case "pregel" => {
+					println("Using Pregel...")
+					spark.time(
+						Algorithms.labelPropagationPregel(graph, 30)
+					)
+				}
+				case "mr" => {
+					println("Using MR...")
+					spark.time(
+						Algorithms.labelPropagationMR(graph, 30)
+					)
+				}
+				case "library" => {
+					println("Using library LP...")
+					spark.time(
+						LabelPropagation.run(graph, 30)
+					)
+				}
+			}
+			//lpaGraph.vertices.groupBy(_._2._1).mapValues(_.size).foreach(println)
 		} else {
 			/**val lpaGraph = Algorithms.labelPropagation(sc, graph,5);
 			lpaGraph.vertices.collect.foreach(println)*/
