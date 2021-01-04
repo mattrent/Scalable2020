@@ -10,7 +10,7 @@ object Main extends App {
 		val spark = SparkSession
 		  .builder
 		  .appName("Scalable2020")
-		  .config("spark.master", "local[8]")
+		  .config("spark.master", "local")
 		  .getOrCreate()
 
 		val sc = spark.sparkContext
@@ -25,8 +25,10 @@ object Main extends App {
 		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
 		if (args.length > 0 && args(0) == "Trent") {
-			val graphSNN = Algorithms.SNN(graph)
-			graphSNN.triplets.collect.foreach(println)
+			/*val graphSNN = Algorithms.SNN(graph)
+			graphSNN.triplets.collect.foreach(println)*/
+			val lpaGraph = Algorithms.labelPropagationMR(graph, 5)
+			lpaGraph.vertices.groupBy(_._2._1).mapValues(_.size).foreach(println)
 		} else {
 			/**val lpaGraph = Algorithms.labelPropagation(sc, graph,5);
 			lpaGraph.vertices.collect.foreach(println)*/

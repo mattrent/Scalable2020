@@ -1,14 +1,12 @@
 package utils
 
-import org.apache.spark.SparkContext
 import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, Pregel, VertexId}
-
-import scala.collection.mutable
 
 
 object Algorithms {
 	def SNN(graph: Graph[String, Int]): Graph[String, Int] = {
 		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
+
 		val graphSNN = Graph(graph.vertices,
 			graph.edges.mapValues(
 				e => neighbors(e.srcId)
@@ -20,8 +18,38 @@ object Algorithms {
 		graphSNN
 	}
 
+	def labelPropagationMR(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
+		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
-  def labelPropagationPregel(graph: Graph[String, Int], maxSteps: Int): Graph[VertexId, Int] = {
+		val lpaGraph = graph.mapVertices{ case (vid, name) => (vid, name) }
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
+
+		def propagate(g: Graph[(VertexId, String), Int], steps: Int): Graph[(VertexId, String), Int] = {
+			if (steps == 0) g
+			else {
+				val vertices = g.vertices.collectAsMap().par
+				val tempGraph = g.mapVertices {
+					case (id, (label, name)) => {
+
+						//per ogni nodo adiacente cerco nel grafo la corrente etichetta => successivamente la mappo al suo numero di occorrenze
+						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
+							vertices(adjId)._1
+						}).groupBy(identity).mapValues(_.size)
+
+						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
+						val newLabel = labels.maxBy(_._2)._1
+
+						(newLabel, name)
+					}
+				}
+				propagate(tempGraph, steps - 1)
+			}
+		}
+
+		propagate(lpaGraph, maxSteps)
+	}
+
+	def labelPropagationPregel(graph: Graph[String, Int], maxSteps: Int): Graph[VertexId, Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		//inizializzazione delle label di ogni nodo del grafo con una etichetta diversa per ogni nodo
@@ -83,4 +111,4 @@ object Algorithms {
 
 	}
 
-	}
+}
