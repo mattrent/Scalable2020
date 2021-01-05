@@ -26,8 +26,8 @@ object Main extends App {
 		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
 		if (args.length > 0 && args(0) == "Trent") {
-			//TODO: test LPA performance on preprocessed graph
-			val graphSNN = Algorithms.SNN(graph).subgraph((e => e.attr != 0))
+			//TODO: test LPA performance on simplified graph
+			val graphSNN = Algorithms.SNN(graph)
 			/*graphSNN.triplets.collect.foreach(println)
 			GraphBuilder.export(graphSNN, "graphSNN.gexf")
 			println("Edges with weight = 0: " + graphSNN.edges.filter(e => e.attr == 0).count()) */
