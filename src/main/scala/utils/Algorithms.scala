@@ -4,7 +4,7 @@ import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, Pregel,
 
 
 object Algorithms {
-	def SNN(graph: Graph[String, Int]): Graph[String, Int] = {
+	def SNN(graph: Graph[String, Int], simplify: Boolean = false): Graph[String, Int] = {
 		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
 
 		val graphSNN = Graph(graph.vertices,
@@ -14,8 +14,8 @@ object Algorithms {
 				  .length
 			)
 		)
-
-		graphSNN
+		if (simplify) graphSNN.subgraph((e => e.attr != 0))
+		else graphSNN
 	}
 
 	def labelPropagationMR(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
