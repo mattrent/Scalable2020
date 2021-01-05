@@ -1,8 +1,14 @@
+import breeze.numerics.constants.e
 import utils.GraphBuilder
 import utils.Algorithms
-
+import org.graphstream.graph
+import org.graphstream.graph.{Graph, IdAlreadyInUseException, implementations}
 import org.apache.spark.graphx.lib.LabelPropagation
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.graphx.{Edge, VertexId}
+import org.apache.spark.rdd.RDD
+import org.graphstream.graph.implementations.{AbstractEdge, MultiGraph, MultiNode, SingleGraph, SingleNode}
+
 
 object Main extends App {
 	override def main(args: Array[String]): Unit = {
@@ -58,8 +64,64 @@ object Main extends App {
 		} else {
 			/**val lpaGraph = Algorithms.labelPropagation(sc, graph,5);
 			lpaGraph.vertices.collect.foreach(println)*/
-			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
-			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))
+			/**val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
+			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
+
+			val gr = new SingleGraph("GitGraph");
+
+			val vertices: RDD[(VertexId, String)] = sc.parallelize(List(
+				(1L, "A"),
+				(2L, "B"),
+				(3L, "C"),
+				(4L, "D"),
+				(5L, "E"),
+				(6L, "F"),
+				(7L, "G")))
+
+			val edges: RDD[Edge[String]] = sc.parallelize(List(
+				Edge(1L, 2L, "1-2"),
+				Edge(1L, 3L, "1-3"),
+				Edge(2L, 4L, "2-4"),
+				Edge(3L, 5L, "3-5"),
+				Edge(3L, 6L, "3-6"),
+				Edge(5L, 7L, "5-7"),
+				Edge(6L, 7L, "6-7")))
+
+
+			for ((id,_) <- vertices.collect()) {
+				val node = gr.addNode(id.toString).asInstanceOf[SingleNode]
+			}
+
+			for (Edge(x,y,_) <- edges.collect()) {
+				try {
+					val edge = gr.addEdge(x.toString ++ y.toString, x.toString, y.toString, true).asInstanceOf[AbstractEdge]
+				} catch {
+					case ex: IdAlreadyInUseException => println(s"IdAlreadyInUseException: ("+ x.toString, y.toString+")")
+				}
+			}
+			gr.display()
+/**
+			for ((x,y,_) <- graph.edges.collect()) {
+				val edge = gr.addEdge(x.toString ++ y.toString,
+					x.toString, y.toString,
+					true).
+					asInstanceOf[AbstractEdge]
+			}
+
+gr.display()
+
+*/
+
+			/**gr.addNode("A" );
+			gr.addNode("B" );
+			gr.addNode("C" );
+			gr.addEdge("AB", "A", "B");
+			gr.addEdge("BC", "B", "C");
+			gr.addEdge("CA", "C", "A");
+
+			gr.display()*/
+
+
 		}
 
 	}
