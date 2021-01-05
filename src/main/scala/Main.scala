@@ -33,10 +33,10 @@ object Main extends App {
 
 		if (args.length > 0 && args(0) == "Trent") {
 			//TODO: test LPA performance on simplified graph
-			val graphSNN = Algorithms.SNN(graph)
-			/*graphSNN.triplets.collect.foreach(println)
+			val graphSNN = Algorithms.SNN(graph, true)
+			/*graphSNN.triplets.collect.foreach(println)*/
 			GraphBuilder.export(graphSNN, "graphSNN.gexf")
-			println("Edges with weight = 0: " + graphSNN.edges.filter(e => e.attr == 0).count()) */
+			/*println("Edges with weight = 0: " + graphSNN.edges.filter(e => e.attr == 0).count()) */
 
 			/*args(1) match {
 				case "pregel" => {
