@@ -2,10 +2,12 @@ package utils
 
 import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, Pregel, VertexId}
 
+import scala.collection.parallel.ParMap
+
 
 object Algorithms {
 	def SNN(graph: Graph[String, Int], simplify: Boolean = false): Graph[String, Int] = {
-		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
 
 		val graphSNN = Graph(graph.vertices,
 			graph.edges.mapValues(
@@ -18,11 +20,11 @@ object Algorithms {
 		else graphSNN
 	}
 
-	def labelPropagationMR(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
+	def labelPropagationMR_old(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		val lpaGraph = graph.mapVertices{ case (vid, name) => (vid, name) }
-		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
 
 		def propagate(g: Graph[(VertexId, String), Int], steps: Int): Graph[(VertexId, String), Int] = {
 			if (steps == 0) g
@@ -37,7 +39,8 @@ object Algorithms {
 						}).groupBy(identity).mapValues(_.size)
 
 						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
-						val newLabel = labels.maxBy(_._2)._1
+						val newLabel = if (labels.size > 0) labels.maxBy(_._2)._1
+						else label
 
 						(newLabel, name)
 					}
@@ -47,6 +50,47 @@ object Algorithms {
 		}
 
 		propagate(lpaGraph, maxSteps)
+	}
+
+	def labelPropagationMR(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
+		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
+
+		val lpaGraph = graph.mapVertices{ case (vid, name) => (vid, name) }
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
+		val vertices = lpaGraph.vertices.collectAsMap().par
+
+		def propagate(g: Graph[(VertexId, String), Int],
+					  steps: Int,
+					  neighbors: ParMap[VertexId, Array[VertexId]],
+					  v: ParMap[VertexId, (VertexId, String)]): Graph[(VertexId, String), Int]
+		= {
+			if (steps == 0) g
+			else {
+				val tempGraph = g.mapVertices {
+					case (id, (label, name)) => {
+
+						//per ogni nodo adiacente cerco nel grafo la corrente etichetta => successivamente la mappo al suo numero di occorrenze
+						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
+							v(adjId)._1
+						}).groupBy(identity).mapValues(_.size)
+
+						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
+						val newLabel =
+							if (labels.size > 0) {
+								val l = labels.maxBy(_._2)._1
+								v.updated(id, (l, name))
+								l
+							}
+							else label
+
+						(newLabel, name)
+					}
+				}
+				propagate(tempGraph, steps - 1, neighbors, v)
+			}
+		}
+
+		propagate(lpaGraph, maxSteps, neighbors, vertices)
 	}
 
 	def labelPropagationPregel(graph: Graph[String, Int], maxSteps: Int): Graph[VertexId, Int] = {

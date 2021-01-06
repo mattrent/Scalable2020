@@ -10,6 +10,8 @@ import org.apache.spark.graphx.{Edge, EdgeDirection, VertexId}
 import org.apache.spark.rdd.RDD
 import org.graphstream.graph.implementations.{AbstractEdge, MultiGraph, MultiNode, SingleGraph, SingleNode}
 
+import java.io.{BufferedWriter, File, FileWriter}
+
 
 
 object Main extends App {
@@ -35,10 +37,29 @@ object Main extends App {
 
 		if (args.length > 0 && args(0) == "Trent") {
 			//TODO: test LPA performance on simplified graph
-			val graphSNN = Algorithms.SNN(graph, true)
-			/*graphSNN.triplets.collect.foreach(println)*/
-			GraphBuilder.export(graphSNN, "graphSNN.gexf")
-			/*println("Edges with weight = 0: " + graphSNN.edges.filter(e => e.attr == 0).count()) */
+
+			/*val graphSNN = Algorithms.SNN(graph, true)
+			graphSNN.triplets.collect.foreach(println)
+			GraphBuilder.export(graphSNN, "graphSNN.gexf")*/
+			spark.time({
+				val graphLPA = Algorithms.labelPropagationMR(graph, 30)
+				graphLPA.vertices.collect
+			})
+
+			spark.time({
+				val graphLPA_old = Algorithms.labelPropagationMR_old(graph, 30)
+				graphLPA_old.vertices.collect
+			})
+
+			//val graphLPA_old = Algorithms.labelPropagationMR_old(graph, 30)
+
+			/*val file = new File("graphLPA_MR.txt")
+			val bw = new BufferedWriter(new FileWriter(file))
+			graphLPA.vertices.foreach(v => bw.write(v.toString()))*/
+
+			/*val file_old = new File("graphLPA_MR_old.txt")
+			val bw_old = new BufferedWriter(new FileWriter(file_old))
+			graphLPA_old.vertices.foreach(v => bw_old.write(v.toString()))*/
 
 			/*args(1) match {
 				case "pregel" => {
