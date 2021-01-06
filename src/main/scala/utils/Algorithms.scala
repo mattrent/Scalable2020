@@ -62,7 +62,7 @@ object Algorithms {
 		def propagate(g: Graph[(VertexId, String), Int],
 					  steps: Int,
 					  neighbors: ParMap[VertexId, Array[VertexId]],
-					  vertices: ParMap[VertexId, (VertexId, String)]): Graph[(VertexId, String), Int]
+					  v: ParMap[VertexId, (VertexId, String)]): Graph[(VertexId, String), Int]
 		= {
 			if (steps == 0) g
 			else {
@@ -71,23 +71,22 @@ object Algorithms {
 
 						//per ogni nodo adiacente cerco nel grafo la corrente etichetta => successivamente la mappo al suo numero di occorrenze
 						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
-							vertices(adjId)._1
+							v(adjId)._1
 						}).groupBy(identity).mapValues(_.size)
 
 						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
 						val newLabel =
 							if (labels.size > 0) {
 								val l = labels.maxBy(_._2)._1
-								vertices.updated(id, l)
+								v.updated(id, (l, name))
 								l
-
 							}
 							else label
 
 						(newLabel, name)
 					}
 				}
-				propagate(tempGraph, steps - 1, neighbors, vertices)
+				propagate(tempGraph, steps - 1, neighbors, v)
 			}
 		}
 
