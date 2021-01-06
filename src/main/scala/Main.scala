@@ -5,7 +5,7 @@ import org.graphstream.graph
 import org.graphstream.graph.{Graph, IdAlreadyInUseException, implementations}
 import org.apache.spark.graphx.lib.LabelPropagation
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.graphx.{Edge, VertexId}
+import org.apache.spark.graphx.{Edge, EdgeDirection, VertexId}
 import org.apache.spark.rdd.RDD
 import org.graphstream.graph.implementations.{AbstractEdge, MultiGraph, MultiNode, SingleGraph, SingleNode}
 
@@ -33,10 +33,14 @@ object Main extends App {
 
 		if (args.length > 0 && args(0) == "Trent") {
 			//TODO: test LPA performance on simplified graph
-			val graphSNN = Algorithms.SNN(graph, true)
-			/*graphSNN.triplets.collect.foreach(println)*/
-			GraphBuilder.export(graphSNN, "graphSNN.gexf")
-			/*println("Edges with weight = 0: " + graphSNN.edges.filter(e => e.attr == 0).count()) */
+
+			/*val graphSNN = Algorithms.SNN(graph, true)
+			graphSNN.triplets.collect.foreach(println)
+			GraphBuilder.export(graphSNN, "graphSNN.gexf")*/
+
+			spark.time( Algorithms.labelPropagationMR(graph, 30) )
+			spark.time( Algorithms.labelPropagationMR_old(graph, 30) )
+
 
 			/*args(1) match {
 				case "pregel" => {
