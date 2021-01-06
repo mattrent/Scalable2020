@@ -1,13 +1,15 @@
 import breeze.numerics.constants.e
 import utils.GraphBuilder
 import utils.Algorithms
+import utils.Metrics
 import org.graphstream.graph
 import org.graphstream.graph.{Graph, IdAlreadyInUseException, implementations}
 import org.apache.spark.graphx.lib.LabelPropagation
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.graphx.{Edge, VertexId}
+import org.apache.spark.graphx.{Edge, EdgeDirection, VertexId}
 import org.apache.spark.rdd.RDD
 import org.graphstream.graph.implementations.{AbstractEdge, MultiGraph, MultiNode, SingleGraph, SingleNode}
+
 
 
 object Main extends App {
@@ -67,8 +69,17 @@ object Main extends App {
 			/**val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
 			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
-			graph.outDegrees.collect().foreach(println)
+			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
 
+			//val communityDensity=Metrics.density(lpaGraph,graph)
+			//communityDensity.foreach(println)
+
+			/**
+			val numeratore=lpaGraph.vertices.groupBy(_._2).map(group => (group._1,group._2.
+				foreach(id =>  )
+			)
+			)*/
+				//foreach((x,y)=>println(y))
 
 			/**
 			val gr = new SingleGraph("GitGraph");
@@ -124,7 +135,6 @@ gr.display()
 			gr.addEdge("CA", "C", "A");
 
 			gr.display()*/
-
 
 		}
 
