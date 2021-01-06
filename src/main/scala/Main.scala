@@ -67,6 +67,10 @@ object Main extends App {
 			/**val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
 			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
+			graph.outDegrees.collect().foreach(println)
+
+
+			/**
 			val gr = new SingleGraph("GitGraph");
 
 			val vertices: RDD[(VertexId, String)] = sc.parallelize(List(
@@ -99,7 +103,7 @@ object Main extends App {
 					case ex: IdAlreadyInUseException => println(s"IdAlreadyInUseException: ("+ x.toString, y.toString+")")
 				}
 			}
-			gr.display()
+			gr.display()*/
 /**
 			for ((x,y,_) <- graph.edges.collect()) {
 				val edge = gr.addEdge(x.toString ++ y.toString,
