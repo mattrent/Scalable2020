@@ -41,7 +41,8 @@ object Main extends App {
 			/*val graphSNN = Algorithms.SNN(graph, true)
 			graphSNN.triplets.collect.foreach(println)
 			GraphBuilder.export(graphSNN, "graphSNN.gexf")*/
-			spark.time({
+
+			/*spark.time({
 				val graphLPA = Algorithms.labelPropagationMR(graph, 30)
 				graphLPA.vertices.collect
 			})
@@ -49,9 +50,13 @@ object Main extends App {
 			spark.time({
 				val graphLPA_old = Algorithms.labelPropagationMR_old(graph, 30)
 				graphLPA_old.vertices.collect
-			})
+			})*/
 
-			//val graphLPA_old = Algorithms.labelPropagationMR_old(graph, 30)
+
+			val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
+
+			spark.time(Metrics.density(graphLPA))
+			spark.time(Metrics.density_old(graphLPA, graph))
 
 			/*val file = new File("graphLPA_MR.txt")
 			val bw = new BufferedWriter(new FileWriter(file))
