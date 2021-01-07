@@ -92,15 +92,26 @@ object Main extends App {
 
 			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
 
-			//val communityDensity=Metrics.density(lpaGraph,graph)
-			//communityDensity.foreach(println)
+			val community=lpaGraph.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1).toList))
 
-			/**
-			val numeratore=lpaGraph.vertices.groupBy(_._2).map(group => (group._1,group._2.
-				foreach(id =>  )
-			)
-			)*/
-				//foreach((x,y)=>println(y))
+			val denominatore=lpaGraph.vertices.groupBy(_._2).map(group => (group._1,group._2.size*(group._2.size-1)))
+
+			val neighbors=graph.triplets.groupBy(g => g.toTuple._1._1).map(p => (p._1, p._2.map(_.toTuple._2._1)))
+
+			//print(neighbors.lookup(8621).intersect(community.lookup(8621)).size)
+
+			//val numberEdgesInCommmunity=
+				community.map(
+					//c._1 --> id community
+					//c._2 --> lista partecipanti alla community
+					//=> per ogni nodo di ogni community vogliamo calcolare quanti nodi raggiungibili da un arco in output (memorizzato
+					// in neighbors) sono nodi che fanno parte della medesima community (memorizzati in c._2)
+					//--> intersezione tra neighbors[id] e c._2
+					c => (c._1,
+						c._2.map(id =>
+						neighbors.lookup(id).intersect(c._2).size).sum)  //Perchè rompe le palle? Cosa vuole?
+				).foreach(println)
+
 
 			/**
 			val gr = new SingleGraph("GitGraph");
