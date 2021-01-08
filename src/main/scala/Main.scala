@@ -42,6 +42,11 @@ object Main extends App {
 			graphSNN.triplets.collect.foreach(println)
 			GraphBuilder.export(graphSNN, "graphSNN.gexf")*/
 
+			val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
+			/*val modularity = Metrics.modularity(graphLPA)
+			println(modularity) */
+			spark.time(Metrics.modularity(graphLPA))
+
 			/*spark.time({
 				val graphLPA = Algorithms.labelPropagationMR(graph, 30)
 				graphLPA.vertices.collect
