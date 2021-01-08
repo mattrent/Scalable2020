@@ -13,7 +13,7 @@ object Metrics {
 
 		val internalDensity = community.map(c => (c._1,
 		  if (possibleCommunityEdges(c) == 0) 0F
-		  else (2 * internalCommunityEdges(c, neighbors)) / internalCommunityEdges(c))
+		  else (2 * internalCommunityEdges(c, neighbors)) / possibleCommunityEdges(c))
 		)
 
 		internalDensity
