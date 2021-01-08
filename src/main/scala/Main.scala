@@ -98,7 +98,7 @@ object Main extends App {
 
 
 			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
-			Metrics.density(lpaGraph).foreach(println)
+			Metrics.density(lpaGraph).filter(pair => pair._2!=0.0F).foreach(println)
 
 			/**
 			val gr = new SingleGraph("GitGraph");

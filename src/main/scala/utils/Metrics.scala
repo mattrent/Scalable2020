@@ -42,12 +42,12 @@ object Metrics {
 
 
 
-		def denominatore(community: (VertexId, Iterable[VertexId])): Int = {
-			community._2.size * (community._2.size - 1)
+		def denominatore(community: (VertexId, Iterable[VertexId])): Float = {
+			community._2.size * (community._2.size - 1).toFloat
 		}
 
-		def numberEdgesInCommmunity(community: (VertexId, Iterable[VertexId]), neighbors: ParMap[VertexId, Array[VertexId]]): Int = {
-			community._2.map(id => (neighbors(id).intersect(community._2.toSeq.par)).size).sum
+		def numberEdgesInCommmunity(community: (VertexId, Iterable[VertexId]), neighbors: ParMap[VertexId, Array[VertexId]]): Float = {
+			community._2.map(id => (neighbors(id).intersect(community._2.toSeq.par)).size).sum.toFloat
 		}
 
 		//val neighbors = graph.collectNeighbors(EdgeDirection.Out).collectAsMap()
