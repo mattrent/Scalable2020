@@ -55,7 +55,8 @@ object Main extends App {
 
 			val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
 
-			spark.time(Metrics.density(graphLPA))
+			//Metrics.density(graphLPA).filter(c => c._2 != 0F).foreach(println)
+			spark.time(Metrics.density(graphLPA).collect)
 			spark.time(Metrics.density_old(graphLPA, graph))
 
 			/*val file = new File("graphLPA_MR.txt")
