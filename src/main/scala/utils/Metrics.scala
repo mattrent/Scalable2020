@@ -64,13 +64,8 @@ object Metrics {
 			else (2 * numberEdgesInCommmunity(c._1)) / denominatore.lookup(c._1).mkString(",").toInt)
 		)*/
 
-		val internalDensity = for (
-			c <- community
-		)
-			yield (c._1,
-			  if (denominatore(c) == 0) 0F
-			  else (2 * numberEdgesInCommmunity(c, neighbors)) / denominatore(c)
-			)
+		val internalDensity = community.map(c => (c._1,if (denominatore(c) == 0) 0F
+		else (2 * numberEdgesInCommmunity(c, neighbors)) / denominatore(c)))
 
 		internalDensity
 
