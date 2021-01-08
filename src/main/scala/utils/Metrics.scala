@@ -26,4 +26,25 @@ object Metrics {
 	private def internalCommunityEdges(community: (VertexId, Iterable[VertexId]), neighbors: ParMap[VertexId, Array[VertexId]]): Float = {
 		community._2.map(id => (neighbors(id).intersect(community._2.toSeq.par)).size).sum.toFloat
 	}
+
+	private def totalCommunityOutEdges(community: (VertexId, Iterable[VertexId]), neighbors: ParMap[VertexId, Array[VertexId]]): Float = {
+		community._2.map(id => (neighbors(id).size)).sum.toFloat
+	}
+
+	def separability(graphLPA: Graph[VertexId, Int]): RDD[(VertexId, Float)] = {
+		val community = graphLPA.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1)))
+		val neighborsOut = graphLPA.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
+		val neighborsIn = graphLPA.collectNeighborIds(EdgeDirection.In).collectAsMap().par
+
+		val internalSeparability = community.map(c => (c._1,{
+			val ein=internalCommunityEdges(c,neighborsIn)
+			val eout= totalCommunityOutEdges(c, neighborsOut)-ein
+			if (eout == 0) 0F
+			else ein/eout
+		}))
+
+		internalSeparability
+	}
+
+
 }
