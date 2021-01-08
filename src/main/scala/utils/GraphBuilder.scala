@@ -37,7 +37,7 @@ object GraphBuilder {
 		def toGexf[VD,ED](g:Graph[VD,ED]) =
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 			  "<gexf xmlns=\"http://www.gexf.net/1.3draft\" version=\"1.3\">\n" +
-			  "  <graph mode=\"static\" defaultedgetype=\"undirected\">\n" +
+			  "  <graph mode=\"static\" defaultedgetype=\"directed\">\n" +
 			  "    <nodes>\n" +
 							g.vertices.map(v => "      " +
 							  "<node id=\"" + v._1 + "\" " +
