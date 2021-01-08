@@ -53,8 +53,8 @@ object Main extends App {
 			})*/
 
 
-			val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
-			spark.time(Metrics.density(graphLPA).collect)
+			/*val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
+			spark.time(Metrics.density(graphLPA).collect)*/
 
 			/*val file = new File("graphLPA_MR.txt")
 			val bw = new BufferedWriter(new FileWriter(file))
@@ -75,60 +75,6 @@ object Main extends App {
 
 			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
 			Metrics.density(lpaGraph).filter(pair => pair._2!=0.0F).foreach(println)
-
-			/**
-			val gr = new SingleGraph("GitGraph");
-
-			val vertices: RDD[(VertexId, String)] = sc.parallelize(List(
-				(1L, "A"),
-				(2L, "B"),
-				(3L, "C"),
-				(4L, "D"),
-				(5L, "E"),
-				(6L, "F"),
-				(7L, "G")))
-
-			val edges: RDD[Edge[String]] = sc.parallelize(List(
-				Edge(1L, 2L, "1-2"),
-				Edge(1L, 3L, "1-3"),
-				Edge(2L, 4L, "2-4"),
-				Edge(3L, 5L, "3-5"),
-				Edge(3L, 6L, "3-6"),
-				Edge(5L, 7L, "5-7"),
-				Edge(6L, 7L, "6-7")))
-
-
-			for ((id,_) <- vertices.collect()) {
-				val node = gr.addNode(id.toString).asInstanceOf[SingleNode]
-			}
-
-			for (Edge(x,y,_) <- edges.collect()) {
-				try {
-					val edge = gr.addEdge(x.toString ++ y.toString, x.toString, y.toString, true).asInstanceOf[AbstractEdge]
-				} catch {
-					case ex: IdAlreadyInUseException => println(s"IdAlreadyInUseException: ("+ x.toString, y.toString+")")
-				}
-			}
-			gr.display()*/
-	/**
-			for ((x,y,_) <- graph.edges.collect()) {
-				val edge = gr.addEdge(x.toString ++ y.toString,
-					x.toString, y.toString,
-					true).
-					asInstanceOf[AbstractEdge]
-			}
-
-		gr.display()
-	*/
-
-			/**gr.addNode("A" );
-			gr.addNode("B" );
-			gr.addNode("C" );
-			gr.addEdge("AB", "A", "B");
-			gr.addEdge("BC", "B", "C");
-			gr.addEdge("CA", "C", "A");
-
-			gr.display()*/
 
 		}
 
