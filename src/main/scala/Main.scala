@@ -54,10 +54,7 @@ object Main extends App {
 
 
 			val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
-
-			//Metrics.density(graphLPA).filter(c => c._2 != 0F).foreach(println)
 			spark.time(Metrics.density(graphLPA).collect)
-			spark.time(Metrics.density_old(graphLPA, graph))
 
 			/*val file = new File("graphLPA_MR.txt")
 			val bw = new BufferedWriter(new FileWriter(file))
@@ -66,27 +63,6 @@ object Main extends App {
 			/*val file_old = new File("graphLPA_MR_old.txt")
 			val bw_old = new BufferedWriter(new FileWriter(file_old))
 			graphLPA_old.vertices.foreach(v => bw_old.write(v.toString()))*/
-
-			/*args(1) match {
-				case "pregel" => {
-					println("Using Pregel...")
-					spark.time(
-						Algorithms.labelPropagationPregel(graph, 30)
-					)
-				}
-				case "mr" => {
-					println("Using MR...")
-					spark.time(
-						Algorithms.labelPropagationMR(graph, 30)
-					)
-				}
-				case "library" => {
-					println("Using library LP...")
-					spark.time(
-						LabelPropagation.run(graph, 30)
-					)
-				}
-			}*/
 
 
 			//lpaGraph.vertices.groupBy(_._2._1).mapValues(_.size).foreach(println)
