@@ -79,10 +79,20 @@ object Main extends App {
 
 			println("Arrivata")
 			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
+
 			val separability=Metrics.density(lpaGraph)
 			println("Post separability")
 			val s=separability.map(_._2)
-			println(s.mean())
+			//println(Metrics.getStatistics(s))
+
+
+			//Mediana
+			val ordered = s.sortBy(r=>r, ascending = false)
+			println("Ordinato")
+			val m = ordered.count()/2
+			println("Punto medio "+m)
+			if (m.isValidInt) println("Oggetto a indice m")
+			else{println("media tra oggetto a indice m e m+1")}
 
 		}
 

@@ -82,7 +82,7 @@ object Metrics {
 	}
 
 	def getStatistics ( metricOutput:RDD[ Double] ): Map[String,Double] ={
-		println("metodo")
+		println("Metodo")
 		Map("mean" -> metricOutput.mean(),
 			  "max" -> metricOutput.max(),
 				"min" -> metricOutput.min()
