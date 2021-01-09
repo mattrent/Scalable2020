@@ -32,8 +32,13 @@ object Metrics {
 	}
 
 	def separability(graphLPA: Graph[VertexId, Int]): RDD[(VertexId, Double)] = {
+		//Calcolo di un RDD formato da coppie (<nome community>, <lista di nodi della community>)
 		val community = graphLPA.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1)))
+		//Calcolo di una map che associa ad ogni vertice e la lista dei nodi del grafo che vengono raggiunti
+		//da un arco in uscita da tale vertice
 		val neighborsOut = graphLPA.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
+		//Calcolo di una map che associa ad ogni vertice e la lista dei nodi del grafo per cui esiste un arco che raggiunge
+		//il nodo considerato
 		val neighborsIn = graphLPA.collectNeighborIds(EdgeDirection.In).collectAsMap().par
 
 		val internalSeparability = community.map(c => (c._1,{
@@ -74,6 +79,19 @@ object Metrics {
 		}).sum / m
 
 		graphModularity
+	}
+
+	def getStatistics ( metricOutput:RDD[ Double] ): Map[String,Double] ={
+		println("metodo")
+		Map("mean" -> metricOutput.mean(),
+			  "max" -> metricOutput.max(),
+				"min" -> metricOutput.min()
+			/**"median" -> { val ordered = metricOutput.sortBy(r=>r, ascending = false)
+											val m = ordered.count()/2
+											if (m.isValidInt) ordered else ordered.get
+										}*/
+			 )
+
 	}
 
 

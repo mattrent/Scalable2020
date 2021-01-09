@@ -77,11 +77,12 @@ object Main extends App {
 			/**val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
 			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
-
+			println("Arrivata")
 			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
-			Metrics.separability(lpaGraph).filter(pair => pair._2!=0.0F).foreach(println)
-
-
+			val separability=Metrics.density(lpaGraph)
+			println("Post separability")
+			val s=separability.map(_._2)
+			println(s.mean())
 
 		}
 
