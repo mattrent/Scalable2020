@@ -103,7 +103,7 @@ object Main extends App {
 			println("Numero di vertici isolati "+(graph.vertices.count()-notIsolatedNodes.count()))
 
 			//Creazione del grafo senza nodi isolati
-			val graphWithoutIsoltedNode = Graph(notIsolatedNodes,graph.edges)
+			val graphWithoutIsoltedNode = graph.subgraph((e=>e.attr!=0), ((vid,s) => neighborsIn(vid).isEmpty !=true && neighborsOut(vid).isEmpty !=true))
 
 			println("Numero archi vecchio grafo: "+graph.edges.count()+" --- Numero nodi vecchio grafo: "+graph.vertices.count())
 			println("Numero archi nuovo grafo: "+graphWithoutIsoltedNode.edges.count()+" --- Numero nodi nuovo grafo: "+graphWithoutIsoltedNode.vertices.count())
