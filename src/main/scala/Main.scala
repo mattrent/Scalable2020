@@ -14,7 +14,7 @@ object Main extends App {
 		val spark = SparkSession
 		  .builder
 		  .appName("Scalable2020")
-		  .config("spark.master", "local[8]")
+		  //.config("spark.master", "local[8]")
 		  .getOrCreate()
 
 		val sc = spark.sparkContext
@@ -23,13 +23,13 @@ object Main extends App {
 		/* loading the files, skipping first line (csv header) */
 		/* load text file => drop first line => split on commas => create the node structure (or the edge structure) by converting the ids to long */
 
-		val graph = GraphBuilder.buildGraphFromFiles(sc, "data/musae_git_target.csv", "data/musae_git_edges.csv", true)
+		val graph = GraphBuilder.buildGraphFromFiles(sc, args(0), args(1), true)
 
 		//graph.triplets.collect.foreach(println)
 		/*val graphLabProp = LabelPropagation.run(graph,5)
 		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
-		if (args.length > 0 && args(0) == "Trent") {
+		if (args.length > 2 && args(2) == "Trent") {
 			//TODO: test LPA performance on simplified graph
 
 			/*val graphSNN = Algorithms.SNN(graph, true)
@@ -40,6 +40,7 @@ object Main extends App {
 			/*val modularity = Metrics.modularity(graphLPA)
 			println(modularity) */
 			spark.time(Metrics.modularity(graphLPA))
+			spark.time(Algorithms.labelPropagationMR(graph, 30))
 
 			/*spark.time({
 				val graphLPA = Algorithms.labelPropagationMR(graph, 30)
