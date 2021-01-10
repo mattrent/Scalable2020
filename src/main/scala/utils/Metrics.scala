@@ -84,9 +84,9 @@ object Metrics {
 	def getStatistics ( metricOutput:RDD[ Double] ): Map[String,Double] ={
 		println("Metodo")
 		Map("mean" -> metricOutput.mean(),
-			  "max" -> metricOutput.max(),
-				"min" -> metricOutput.min(),
-				"nCommunity" -> metricOutput.count()
+			"max" -> metricOutput.max(),
+			"min" -> metricOutput.min(),
+			"nCommunity" -> metricOutput.count()
 			/**"median" -> { val ordered = metricOutput.sortBy(r=>r, ascending = false)
 											val m = ordered.count()/2
 											if (m.isValidInt) ordered else ordered.get
