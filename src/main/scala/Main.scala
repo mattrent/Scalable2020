@@ -2,15 +2,9 @@ import breeze.numerics.constants.e
 import utils.GraphBuilder
 import utils.Algorithms
 import utils.Metrics
-import org.graphstream.graph
-import org.graphstream.graph.{Graph, IdAlreadyInUseException, implementations}
-import org.apache.spark.graphx.lib.LabelPropagation
 import org.apache.spark.sql.SparkSession
-import org.apache.spark.graphx.{Edge, EdgeDirection, VertexId}
-import org.apache.spark.rdd.RDD
-import org.graphstream.graph.implementations.{AbstractEdge, MultiGraph, MultiNode, SingleGraph, SingleNode}
+import org.apache.spark.graphx.{Edge, EdgeDirection, Graph, VertexId}
 
-import java.io.{BufferedWriter, File, FileWriter}
 
 
 
@@ -78,12 +72,14 @@ object Main extends App {
 			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
 			println("Arrivata")
-			val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
-
+			//val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
+/**
 			val separability=Metrics.density(lpaGraph)
 			println("Post separability")
 			val s=separability.map(_._2)
 			//println(Metrics.getStatistics(s))
+
+
 
 
 			//Mediana
@@ -93,7 +89,46 @@ object Main extends App {
 			println("Punto medio "+m)
 			if (m.isValidInt) println("Oggetto a indice m")
 			else{println("media tra oggetto a indice m e m+1")}
+*/
 
+			val neighborsOut = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
+			val neighborsIn = graph.collectNeighborIds(EdgeDirection.In).collectAsMap().par
+			println("Finiti neighbors")
+
+			//Filtro per considerare i nodi non isolati (cioè quelli che hanno almeno un arco di input o di output)
+			val notIsolatedNodes= graph.vertices.filter(pair => neighborsIn(pair._1).isEmpty !=true && neighborsOut(pair._1).isEmpty !=true)
+			println("Vertici non isolati")
+			println("Numero di vertici totale " +graph.vertices.count())
+			println("Numero di vertici non isolati "+ notIsolatedNodes.count())
+			println("Numero di vertici isolati "+(graph.vertices.count()-notIsolatedNodes.count()))
+
+			//Creazione del grafo senza nodi isolati
+			val graphWithoutIsoltedNode = Graph(notIsolatedNodes,graph.edges)
+
+			println("Numero archi vecchio grafo: "+graph.edges.count()+" --- Numero nodi vecchio grafo: "+graph.vertices.count())
+			println("Numero archi nuovo grafo: "+graphWithoutIsoltedNode.edges.count()+" --- Numero nodi nuovo grafo: "+graphWithoutIsoltedNode.vertices.count())
+			println("")
+			println("Confronto tra LPA con pregel")
+			println("Grafo con nodi isolati")
+			val graphLPA1=Algorithms.labelPropagationPregel(graph,5)
+			println("Numero community "+graphLPA1.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
+
+			println("Grafo senza nodi isolati")
+			val graphLPA2=Algorithms.labelPropagationPregel(graphWithoutIsoltedNode,5)
+			println("Numero community "+graphLPA2.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
+
+			/**
+			println("")
+			println("Confronto tra LPA map reduce")
+			println("Grafo con nodi isolati")
+			spark.time(
+				Algorithms.labelPropagationMR(graph,5)
+			)
+			println("Grafo senza nodi isolati")
+			spark.time(
+				Algorithms.labelPropagationMR(graphWithoutIsoltedNode,5)
+			)
+*/
 		}
 
 	}
