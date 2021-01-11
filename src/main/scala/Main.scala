@@ -90,19 +90,10 @@ object Main extends App {
 			else{println("media tra oggetto a indice m e m+1")}
 */
 
-			val neighborsOut = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
-			val neighborsIn = graph.collectNeighborIds(EdgeDirection.In).collectAsMap().par
-			println("Finiti neighbors")
 
-			//Filtro per considerare i nodi non isolati (cioè quelli che hanno almeno un arco di input o di output)
-			val notIsolatedNodes= graph.vertices.filter(pair => neighborsIn(pair._1).isEmpty !=true && neighborsOut(pair._1).isEmpty !=true)
-			println("Vertici non isolati")
-			println("Numero di vertici totale " +graph.vertices.count())
-			println("Numero di vertici non isolati "+ notIsolatedNodes.count())
-			println("Numero di vertici isolati "+(graph.vertices.count()-notIsolatedNodes.count()))
 
 			//Creazione del grafo senza nodi isolati
-			val graphWithoutIsoltedNode = graph.subgraph((e=>e.attr!=0), ((vid,s) => neighborsIn(vid).isEmpty !=true && neighborsOut(vid).isEmpty !=true))
+			val graphWithoutIsoltedNode = GraphBuilder.simplifyGraph(graph)
 
 			println("Numero archi vecchio grafo: "+graph.edges.count()+" --- Numero nodi vecchio grafo: "+graph.vertices.count())
 			println("Numero archi nuovo grafo: "+graphWithoutIsoltedNode.edges.count()+" --- Numero nodi nuovo grafo: "+graphWithoutIsoltedNode.vertices.count())
@@ -115,6 +106,7 @@ object Main extends App {
 			println("Grafo senza nodi isolati")
 			val graphLPA2=Algorithms.labelPropagationPregel(graphWithoutIsoltedNode,5)
 			println("Numero community "+graphLPA2.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
+			
 
 			/**
 			println("")

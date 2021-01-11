@@ -23,14 +23,34 @@ object Metrics {
 		community._2.size * (community._2.size - 1).toDouble
 	}
 
+	/**
+	 * Metodo che calcola il numero di archi tra i nodi che appartengono alla community presa in considerazione
+	 * @param community community del grafo considerata
+	 * @param neighbors map calcolata con il metodo graphx collectNeighborIds (che considera gli archi in uscita o in entrata
+	 *                  a seconda della necessità)
+	 * @return numero di archi che collegano nodi che appartengono alla community considerata
+	 */
 	private def internalCommunityEdges(community: (VertexId, Iterable[VertexId]), neighbors: ParMap[VertexId, Array[VertexId]]): Double = {
 		community._2.map(id => (neighbors(id).intersect(community._2.toSeq.par)).size).sum.toDouble
 	}
 
+	/**
+	 * Metodo che restituisce il numero totale di archi uscenti da ogni ogni nodo della community
+	 * @param community community del grafo considerata
+	 * @param neighbors map che associa ad ogni vertice e la lista dei nodi del grafo che vengono raggiunti
+	 *                  da un arco in uscita da tale vertice
+	 * @return numero totale di archi uscenti da ogni ogni nodo della community
+	 */
 	private def totalCommunityOutEdges(community: (VertexId, Iterable[VertexId]), neighbors: ParMap[VertexId, Array[VertexId]]): Double = {
 		community._2.map(id => (neighbors(id).size)).sum.toDouble
 	}
 
+	/**
+	 * Metodo che calcola il il rapporto tra il numero di archi interni alla community e il
+	 * numero di archi che puntano all'esterno di ogni community (chiamato grado di separability della community)
+	 * @param graphLPA grafo su cui è stato eseguito un metodo di community detection
+	 * @return RDD contenente coppie (nome Community, grado Separability)
+	 */
 	def separability(graphLPA: Graph[VertexId, Int]): RDD[(VertexId, Double)] = {
 		//Calcolo di un RDD formato da coppie (<nome community>, <lista di nodi della community>)
 		val community = graphLPA.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1)))
@@ -41,8 +61,12 @@ object Metrics {
 		//il nodo considerato
 		val neighborsIn = graphLPA.collectNeighborIds(EdgeDirection.In).collectAsMap().par
 
+		//Il grado di separability di una community misura il rapporto tra il numero di archi interni alla community e il
+		// numero di archi che puntano all'esterno della community
 		val internalSeparability = community.map(c => (c._1,{
+			//ein contiene il numero di archi tra nodi della stessa community
 			val ein=internalCommunityEdges(c,neighborsIn)
+			//eout contiene il numero di archi che da un nodo interno alla community puntano ad un nodo esterno alla community
 			val eout= totalCommunityOutEdges(c, neighborsOut)-ein
 			if (eout == 0) 0D
 			else ein/eout
@@ -81,6 +105,12 @@ object Metrics {
 		graphModularity
 	}
 
+	/**
+	 * Metodo che restituisce delle informazioni utili per confrontare tra loro i risultati delle metriche
+	 * applicate all'output di un algoritmo di community detection
+	 * @param metricOutput RDD di Double contenenti i valori restituiti dalla metrica per ogni community
+	 * @return map che associa il nome di una statistica utile al suo valore
+	 */
 	def getStatistics ( metricOutput:RDD[ Double] ): Map[String,Double] ={
 		println("Metodo")
 		Map("mean" -> metricOutput.mean(),

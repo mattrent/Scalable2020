@@ -1,7 +1,7 @@
 package utils
 
 import org.apache.spark.SparkContext
-import org.apache.spark.graphx.Graph
+import org.apache.spark.graphx.{EdgeDirection, Graph}
 
 object GraphBuilder {
 	def buildGraphFromFiles(sc: SparkContext, nodeFile: String, edgeFile: String, csv: Boolean): Graph[String, Int] = {
@@ -55,5 +55,17 @@ object GraphBuilder {
 		val pw = new java.io.PrintWriter(fileName)
 		pw.write(toGexf(graph))
 		pw.close
+	}
+
+	/**
+	 * Metodo che restituisce un grafo semplificato nel quale non ci sono nodi isolati (cioè nodi che non hanno nessun arco
+	 * in uscita e nessun arco in entrata) e archi con attributo pari a 0
+	 * @param graph grafo di partenza che vogliamo semplificare
+	 * @return grafo semplificato
+	 */
+	def simplifyGraph (graph: Graph[String, Int]): Graph[String, Int] ={
+		val neighborsOut = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
+		val neighborsIn = graph.collectNeighborIds(EdgeDirection.In).collectAsMap().par
+		graph.subgraph((e=>e.attr!=0), ((vid,s) => neighborsIn(vid).isEmpty !=true && neighborsOut(vid).isEmpty !=true))
 	}
 }
