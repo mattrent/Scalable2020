@@ -36,9 +36,20 @@ object Main extends App {
 			GraphBuilder.export(graphSNN, "graphSNN.gexf")*/
 
 			val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
-			/*val modularity = Metrics.modularity(graphLPA)
-			println(modularity) */
-			spark.time(Algorithms.labelPropagationMR(graph, 30).vertices.collect)
+			val density = Metrics.density(graphLPA)
+
+			/*println("Statistiche density: ")
+			Metrics.getStatistics(density.map(_._2))
+			println("Statistiche separability: ")
+			Metrics.getStatistics(separability.map(_._2))*/
+
+			spark.time( density.collect )
+			spark.time( Metrics.getStatistics(density.map(_._2)) )
+
+			System.in.read
+			spark.stop()
+
+			//spark.time(Algorithms.labelPropagationMR(graph, 30).vertices.collect)
 
 			/*spark.time({
 				val graphLPA = Algorithms.labelPropagationMR(graph, 30)

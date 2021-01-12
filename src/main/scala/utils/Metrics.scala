@@ -1,5 +1,6 @@
 package utils
 
+import org.apache.spark.SparkContext
 import org.apache.spark.graphx.{EdgeDirection, Graph, VertexId}
 import org.apache.spark.rdd.RDD
 
@@ -111,17 +112,23 @@ object Metrics {
 	 * @param metricOutput RDD di Double contenenti i valori restituiti dalla metrica per ogni community
 	 * @return map che associa il nome di una statistica utile al suo valore
 	 */
-	def getStatistics ( metricOutput:RDD[ Double] ): Map[String,Double] ={
-		println("Metodo")
-		Map("mean" -> metricOutput.mean(),
-			"max" -> metricOutput.max(),
-			"min" -> metricOutput.min(),
-			"nCommunity" -> metricOutput.count()
-			/**"median" -> { val ordered = metricOutput.sortBy(r=>r, ascending = false)
-											val m = ordered.count()/2
-											if (m.isValidInt) ordered else ordered.get
-										}*/
-			 )
+	def getStatistics ( metricOutput: RDD[ Double]): ParMap[String,Double] = {
+		val m = metricOutput.count()
+		val mean = metricOutput.mean()
+		val ordered = metricOutput.sortBy(identity, ascending = false).zipWithIndex().map{
+			case (value, index) => (index, value)
+		}
+		val max = ordered.lookup(m - 1).head
+		val min = ordered.lookup(0).head
+		val median =
+			if (m % 2 == 0) (ordered.lookup(m/2 - 1).head + ordered.lookup(m/2).head) / 2
+			else ordered.lookup((m + 1)/2 - 1).head
+		ParMap(
+			"max" -> max,
+			"min" -> min,
+			"mean" -> mean,
+			"median" -> median
+		)
 
 	}
 
