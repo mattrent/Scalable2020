@@ -8,10 +8,6 @@ import scala.util.Random
 
 object Algorithms {
 
-	private def takeRandom[A](sequence: ParSeq[A], random: Random): A = {
-		sequence(random.nextInt(sequence.length))
-	}
-
 	def SNN(graph: Graph[String, Int], simplify: Boolean = false): Graph[String, Int] = {
 		val neighbors = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
 
@@ -129,6 +125,20 @@ object Algorithms {
 			sendMsg = sendMessage,
 			mergeMsg = mergeMessage)
 
+	}
+
+	private def takeRandom[A](sequence: ParSeq[A], random: Random): A = {
+		sequence(random.nextInt(sequence.length))
+	}
+
+	private def weighNodes(graph: Graph[String, Int], policy: String): Graph[(VertexId, String, Double), Int] = {
+		policy match {
+			case "none" => graph.mapVertices{ case (vid, name) => (vid, name, 1D) }
+			case "inDegree" => {
+				val inDegrees = graph.inDegrees.collectAsMap().par
+				graph.mapVertices{ case (vid, name) => (vid, name, inDegrees(vid)) }
+			}
+		}
 	}
 
 }
