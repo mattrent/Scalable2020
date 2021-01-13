@@ -2,10 +2,12 @@ package utils
 
 import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, Pregel, VertexId}
 
-import scala.collection.parallel.ParMap
+import scala.collection.parallel.{ParMap, ParSeq}
+import scala.util.Random
 
 
 object Algorithms {
+
 	def SNN(graph: Graph[String, Int], simplify: Boolean = false): Graph[String, Int] = {
 		val neighbors = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
 
@@ -45,7 +47,9 @@ object Algorithms {
 						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
 						val newLabel =
 							if (labels.size > 0) {
-								val l = labels.maxBy(_._2)._1
+								val maxRepetitions = labels.maxBy(_._2)._2
+								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
+								val l = takeRandom(labelPool, new Random)
 								v.updated(id, (l, name))
 								l
 							}
@@ -121,6 +125,20 @@ object Algorithms {
 			sendMsg = sendMessage,
 			mergeMsg = mergeMessage)
 
+	}
+
+	private def takeRandom[A](sequence: ParSeq[A], random: Random): A = {
+		sequence(random.nextInt(sequence.length))
+	}
+
+	private def weighNodes(graph: Graph[String, Int], policy: String): Graph[(VertexId, String, Double), Int] = {
+		policy match {
+			case "none" => graph.mapVertices{ case (vid, name) => (vid, name, 1D) }
+			case "inDegree" => {
+				val inDegrees = graph.inDegrees.collectAsMap().par
+				graph.mapVertices{ case (vid, name) => (vid, name, inDegrees(vid)) }
+			}
+		}
 	}
 
 }
