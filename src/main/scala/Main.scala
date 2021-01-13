@@ -91,6 +91,7 @@ object Main extends App {
 */
 
 
+	/**
 
 			//Creazione del grafo senza nodi isolati
 			val graphWithoutIsoltedNode = GraphBuilder.simplifyGraph(graph)
@@ -106,7 +107,7 @@ object Main extends App {
 			println("Grafo senza nodi isolati")
 			val graphLPA2=Algorithms.labelPropagationPregel(graphWithoutIsoltedNode,5)
 			println("Numero community "+graphLPA2.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
-			
+			*/
 
 			/**
 			println("")
@@ -119,7 +120,7 @@ object Main extends App {
 			spark.time(
 				Algorithms.labelPropagationMR(graphWithoutIsoltedNode,5)
 			)
-*/
+			*/
 		}
 
 	}
