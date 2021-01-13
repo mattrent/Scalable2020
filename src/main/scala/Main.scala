@@ -120,6 +120,11 @@ object Main extends App {
 			println("Numero community "+graphLPA2.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
 			*/
 
+
+			val lpaG= Algorithms.DLPA(graph, 100)
+			println(lpaG.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
+			println(graph.vertices.count())
+
 			/**
 			println("")
 			println("Confronto tra LPA map reduce")
