@@ -145,51 +145,58 @@ object Algorithms {
 	def DLPA(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
+		//inizializzazione delle label dei vertici del grafo (ad ognuno di essi viene associata una label diversa)
 		val lpaGraph = graph.mapVertices{ case (vid, name) => (vid, name) }
 
+		//Calcolo dei vicini che sono collegati al nodo considerato mediante un arco in uscita dallo stesso
 		val neighborsOut = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
+		//Calcolo dei vicini che sono collegati al nodo considerato mediante un arco in entrata nello stesso
 		val neighborsIn = graph.collectNeighborIds(EdgeDirection.In).collectAsMap().par
+
+		//Vertici del grafo come mappa
 		val vertices = lpaGraph.vertices.collectAsMap().par
 
+		//Calcolo degli in degree per ogni nodo
 		val inDegrees = graph.inDegrees.collectAsMap().par
+		//Calcolo degli out degree per ogni nodo
 		val outDegrees = graph.outDegrees.collectAsMap().par
+		//Calcolo del degree di ogni nodo
 		val degrees= graph.degrees.collectAsMap().par
 
 		def propagate(g: Graph[(VertexId, String), Int],
-									steps: Int,
-									neighborsIn: ParMap[VertexId, Array[VertexId]],
-									neighborsOut: ParMap[VertexId, Array[VertexId]],
-									v: ParMap[VertexId, (VertexId, String)]): Graph[(VertexId, String), Int]
+									steps: Int): Graph[(VertexId, String), Int]
 		= {
 			if (steps == 0) g
 			else {
 				val tempGraph = g.mapVertices {
 					case (id, (label, name)) => {
 
-						//per ogni nodo adiacente cerco nel grafo la corrente etichetta => successivamente la mappo al suo numero di occorrenze
+						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di input
 						val labelsIn: Map[VertexId, Float] = neighborsIn(id).map(adjId => {
 							val degree= 1-((inDegrees.getOrElse(id,0)*outDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
-							(v(adjId)._1, degree)
+							(vertices(adjId)._1, degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
+						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di output
 						val labelsOut: Map[VertexId, Float] = neighborsIn(id).map(adjId => {
 							val degree= 1-((outDegrees.getOrElse(id,0)*inDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
-							(v(adjId)._1, degree)
+							(vertices(adjId)._1, degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
+						//Calcolo dei degree totali di ogni label mediante il merge tra le due map costruiti al punto precedente
 						val labels: Map[VertexId, Float] = (labelsIn.keySet ++ labelsOut.keySet).map { l =>
 							val countLIn= labelsIn.getOrElse(l,0.0F)
 							val countLOut= labelsOut.getOrElse(l,0.0F)
 							l -> (countLIn+countLOut)
 						}.toMap
 
-						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
+						//Selezione della nuova etichetta del nodo come label con degree maggiore
 						val newLabel =
 							if (labels.size > 0) {
 								val maxRepetitions = labels.maxBy(_._2)._2
 								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
 								val l = takeRandom(labelPool, new Random)
-								v.updated(id, (l, name))
+								vertices.updated(id, (l, name))
 								l
 							}
 							else label
@@ -197,11 +204,11 @@ object Algorithms {
 						(newLabel, name)
 					}
 				}
-				propagate(tempGraph, steps - 1, neighborsIn, neighborsOut, v)
+				propagate(tempGraph, steps - 1)
 			}
 		}
 
-		propagate(lpaGraph, maxSteps, neighborsIn, neighborsOut, vertices)
+		propagate(lpaGraph, maxSteps)
 	}
 
 }

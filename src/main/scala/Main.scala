@@ -122,9 +122,8 @@ object Main extends App {
 
 
 			val lpaG= Algorithms.DLPA(graph, 5)
-			println("Numero community"+lpaG.vertices.groupBy(_._2._1).count())
-			graph.vertices
-
+			println("Numero community "+lpaG.vertices.groupBy(_._2._1).count())
+			
 			/**
 			println("")
 			println("Confronto tra LPA map reduce")
