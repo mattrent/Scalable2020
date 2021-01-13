@@ -9,7 +9,7 @@ import scala.util.Random
 object Algorithms {
 
 	def SNN(graph: Graph[String, Int], simplify: Boolean = false): Graph[String, Int] = {
-		val neighbors = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
 
 		val graphSNN = Graph(graph.vertices,
 			graph.edges.mapValues(
@@ -26,7 +26,7 @@ object Algorithms {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		val lpaGraph = graph.mapVertices{ case (vid, name) => (vid, name) }
-		val neighbors = graph.collectNeighborIds(EdgeDirection.In).collectAsMap().par
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
 		val vertices = lpaGraph.vertices.collectAsMap().par
 
 		def propagate(g: Graph[(VertexId, String), Int],
