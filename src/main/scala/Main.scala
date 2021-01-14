@@ -82,24 +82,6 @@ object Main extends App {
 			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
 
 			println("Arrivata")
-			//val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
-/**
-			val separability=Metrics.density(lpaGraph)
-			println("Post separability")
-			val s=separability.map(_._2)
-			//println(Metrics.getStatistics(s))
-
-
-
-
-			//Mediana
-			val ordered = s.sortBy(r=>r, ascending = false)
-			println("Ordinato")
-			val m = ordered.count()/2
-			println("Punto medio "+m)
-			if (m.isValidInt) println("Oggetto a indice m")
-			else{println("media tra oggetto a indice m e m+1")}
-*/
 
 
 	/**
@@ -119,10 +101,6 @@ object Main extends App {
 			val graphLPA2=Algorithms.labelPropagationPregel(graphWithoutIsoltedNode,5)
 			println("Numero community "+graphLPA2.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
 			*/
-
-
-			val lpaG= Algorithms.SLPA(graph, 5)
-			lpaG.vertices.foreach(println)
 			
 			/**
 			println("")
