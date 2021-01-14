@@ -35,16 +35,17 @@ object Main extends App {
 			graphSNN.triplets.collect.foreach(println)
 			GraphBuilder.export(graphSNN, "graphSNN.gexf")*/
 
-			val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
-			val density = Metrics.density(graphLPA)
+			/*val graphLPA = Algorithms.SLPA(graph, 5)*/
+
+			spark.time(Algorithms.SLPA(graph, 5).vertices.collect)
 
 			/*println("Statistiche density: ")
 			Metrics.getStatistics(density.map(_._2))
 			println("Statistiche separability: ")
 			Metrics.getStatistics(separability.map(_._2))*/
 
-			spark.time( density.collect )
-			spark.time( Metrics.getStatistics(density.map(_._2)) )
+			/*spark.time( density.collect )
+			spark.time( Metrics.getStatistics(density.map(_._2)) )*/
 
 			System.in.read
 			spark.stop()

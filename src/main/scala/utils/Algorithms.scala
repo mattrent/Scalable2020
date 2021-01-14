@@ -129,20 +129,6 @@ object Algorithms {
 
 	}
 
-	private def takeRandom[A](sequence: ParSeq[A], random: Random): A = {
-		sequence(random.nextInt(sequence.length))
-	}
-
-	private def weighNodes(graph: Graph[String, Int], policy: String): Graph[(VertexId, String, Double), Int] = {
-		policy match {
-			case "none" => graph.mapVertices{ case (vid, name) => (vid, name, 1D) }
-			case "inDegree" => {
-				val inDegrees = graph.inDegrees.collectAsMap().par
-				graph.mapVertices{ case (vid, name) => (vid, name, inDegrees(vid)) }
-			}
-		}
-	}
-
 	def DLPA(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
@@ -245,11 +231,9 @@ object Algorithms {
 						//frequenza di una determinata label
 						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
 							//Calcolo delle label possibili
-							val possibleLabels= v(adjId)._1.groupBy(identity).mapValues(_.size)
-							//TODO: Scelta pesata in modo proporzionale alla frequenza delle label (adesso è solo casuale)
-							val maxRepetitions = possibleLabels.maxBy(_._2)._2
-							val labelPool = possibleLabels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
-							takeRandom(labelPool, new Random)
+							val totalNeighbors = v(adjId)._1.size.toDouble
+							val possibleLabels = v(adjId)._1.groupBy(identity).mapValues(_.size.toDouble).par
+							takeWeightedRandom(possibleLabels, new Random)
 						}).groupBy(identity).mapValues(_.size)
 
 						//Il listener seleziona una label dalla lista ottenuta dai vicini secondo la listening rule:
@@ -302,5 +286,28 @@ object Algorithms {
 		postProcessingGraph
 	}
 
+	private def takeRandom[A](sequence: ParSeq[A], random: Random): A = {
+		sequence(random.nextInt(sequence.length))
+	}
+
+	private def takeWeightedRandom[A](sequence: ParMap[A, Double], random: Random): A = {
+		val r = random.nextDouble()
+		val weights = sequence.values
+		val total = weights.sum
+		val probabilities = weights.map(_ / total)
+		val elements = sequence.keys.toSeq
+		val index = probabilities.toStream.scanLeft(r)(_ - _).takeWhile(_ >= 0).size - 1
+		elements(index)
+	}
+
+	private def weighNodes(graph: Graph[String, Int], policy: String): Graph[(VertexId, String, Double), Int] = {
+		policy match {
+			case "none" => graph.mapVertices{ case (vid, name) => (vid, name, 1D) }
+			case "inDegree" => {
+				val inDegrees = graph.inDegrees.collectAsMap().par
+				graph.mapVertices{ case (vid, name) => (vid, name, inDegrees(vid)) }
+			}
+		}
+	}
 
 }
