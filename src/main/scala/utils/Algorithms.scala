@@ -2,6 +2,7 @@ package utils
 
 import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, Pregel, VertexId}
 
+import scala.collection.mutable.ListBuffer
 import scala.collection.parallel.{ParMap, ParSeq}
 import scala.util.Random
 
@@ -212,6 +213,93 @@ object Algorithms {
 		}
 
 		propagate(lpaGraph, maxSteps,neighborsIn, neighborsOut, vertices)
+	}
+
+
+	def SLPA(graph: Graph[String, Int], maxSteps: Int): Graph[(ListBuffer[VertexId], String), Int] = {
+		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
+
+		//inizializzazione delle label dei vertici del grafo (ad ognuno di essi viene associata una label diversa)
+		val lpaGraph = graph.mapVertices{ case (vid, name) => (ListBuffer(vid), name) }
+
+		//Vertici del grafo come mappa
+		val vertices = lpaGraph.vertices.collectAsMap().par
+
+		//Vicini
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
+
+		//Funzione per le T=maxStep di propagazione delle label tra i nodi
+		def propagate (g: Graph[(ListBuffer[VertexId], String), Int],
+									 steps: Int,
+									 neighbors: ParMap[VertexId, Array[VertexId]],
+									 v: ParMap[VertexId, (ListBuffer[VertexId], String)]): Graph[(ListBuffer[VertexId], String), Int]
+		= {
+			if (steps == 0) g
+			else {
+				val tempGraph: Graph[(ListBuffer[VertexId], String), Int] = g.mapVertices {
+					//(id, (label, name)) rappresenta il nodo selezionato come listener
+					case (id, (label, name)) => {
+
+						//Ogni vicino del nodo listebere invia a tale nodo una singola label scelta mediante la speaking rule:
+						//selezione casuale di un'etichetta dalla memoria del nodo vicino considerato con probabilità proporzionale alla
+						//frequenza di una determinata label
+						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
+							//Calcolo delle label possibili
+							val possibleLabels= v(adjId)._1.groupBy(identity).mapValues(_.size)
+							//TODO: Scelta pesata in modo proporzionale alla frequenza delle label (adesso è solo casuale)
+							val maxRepetitions = possibleLabels.maxBy(_._2)._2
+							val labelPool = possibleLabels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
+							takeRandom(labelPool, new Random)
+						}).groupBy(identity).mapValues(_.size)
+
+						//Il listener seleziona una label dalla lista ottenuta dai vicini secondo la listening rule:
+						//Seleziona la label più popolare che ha ottenuto dai vicini e la aggiunge alla propria memoria
+						val newLabel: ListBuffer[VertexId] =
+							if (labels.size > 0) {
+								//Calcolo del valore di occorrenze più alto
+								val maxRepetitions = labels.maxBy(_._2)._2
+								//Lista delle label con numero di occorrenze più alto
+								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
+								//Scelta random tra le label con numero di occorrenze più alto
+								val l = takeRandom(labelPool, new Random)
+								//Aggiornamento delle label associate al nodo listener
+								v.updated(id, (label+=l, name))
+
+								label+=l
+							}
+							else label
+
+						(newLabel, name)
+					}
+				}
+				propagate(tempGraph, steps - 1, neighbors, v)
+			}
+		}
+
+		//Fase di label propagation
+		val postPropagateGraph=propagate(lpaGraph, maxSteps, neighbors, vertices)
+
+		//Fase di post processing
+		val postProcessingGraph: Graph[(ListBuffer[VertexId], String), Int] = postPropagateGraph.mapVertices {
+			//(id, (label, name)) rappresenta il nodo selezionato
+			case (id, (label, name)) => {
+				//Calcolo del numero di occorrenze per ogni label
+				val occurrencesLabel= label.groupBy(identity).mapValues(_.size)
+				//Calcolo del numero di label
+				val nLabel=occurrencesLabel.keySet.size
+				//Definizione del threashold
+				val threashold= 0.5
+				//Eliminiamo i duplicati nella lista delle label del nodo
+				val labelNoDuplicates= label.distinct
+				//Calcolo della lista di label la cui probabilità supera la soglia
+				val newLabelSet=labelNoDuplicates.filter(vid=>occurrencesLabel.getOrElse(vid, 0)/nLabel >= threashold)
+
+
+				(newLabelSet, name)
+			}
+		}
+
+		postProcessingGraph
 	}
 
 }

@@ -121,8 +121,8 @@ object Main extends App {
 			*/
 
 
-			val lpaG= Algorithms.DLPA(graph, 5)
-			println("Numero community "+lpaG.vertices.groupBy(_._2._1).count())
+			val lpaG= Algorithms.SLPA(graph, 5)
+			lpaG.vertices.foreach(println)
 			
 			/**
 			println("")
