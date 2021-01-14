@@ -164,7 +164,10 @@ object Algorithms {
 		val degrees= graph.degrees.collectAsMap().par
 
 		def propagate(g: Graph[(VertexId, String), Int],
-									steps: Int): Graph[(VertexId, String), Int]
+									steps: Int,
+									neighborsIn: ParMap[VertexId, Array[VertexId]],
+									neighborsOut: ParMap[VertexId, Array[VertexId]],
+									v: ParMap[VertexId, (VertexId, String)]): Graph[(VertexId, String), Int]
 		= {
 			if (steps == 0) g
 			else {
@@ -174,13 +177,13 @@ object Algorithms {
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di input
 						val labelsIn: Map[VertexId, Float] = neighborsIn(id).map(adjId => {
 							val degree= 1-((inDegrees.getOrElse(id,0)*outDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
-							(vertices(adjId)._1, degree)
+							(v(adjId)._1, degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di output
-						val labelsOut: Map[VertexId, Float] = neighborsIn(id).map(adjId => {
+						val labelsOut: Map[VertexId, Float] = neighborsOut(id).map(adjId => {
 							val degree= 1-((outDegrees.getOrElse(id,0)*inDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
-							(vertices(adjId)._1, degree)
+							(v(adjId)._1, degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
 						//Calcolo dei degree totali di ogni label mediante il merge tra le due map costruiti al punto precedente
@@ -204,11 +207,11 @@ object Algorithms {
 						(newLabel, name)
 					}
 				}
-				propagate(tempGraph, steps - 1)
+				propagate(tempGraph, steps - 1, neighborsIn, neighborsOut, v)
 			}
 		}
 
-		propagate(lpaGraph, maxSteps)
+		propagate(lpaGraph, maxSteps,neighborsIn, neighborsOut, vertices)
 	}
 
 }
