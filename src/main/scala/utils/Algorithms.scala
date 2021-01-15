@@ -45,12 +45,13 @@ object Algorithms {
 		= {
 			if (steps == 0) g
 			else {
+				var tempV = v
 				val tempGraph = g.mapVertices {
 					case (id, label) => {
 
 						//per ogni nodo adiacente cerco nel grafo la corrente etichetta => successivamente la mappo al suo numero di occorrenze
 						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
-							v(adjId)
+							tempV(adjId)
 						}).groupBy(identity).mapValues(_.size)
 
 						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
@@ -59,7 +60,7 @@ object Algorithms {
 								val maxRepetitions = labels.maxBy(_._2)._2
 								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
 								val l = takeRandom(labelPool, new Random)
-								v.updated(id, l)
+								tempV = tempV.updated(id, l)
 								l
 							}
 							else label
@@ -67,7 +68,7 @@ object Algorithms {
 						newLabel
 					}
 				}
-				propagate(tempGraph, steps - 1, neighbors, v)
+				propagate(tempGraph, steps - 1, neighbors, tempV)
 			}
 		}
 
@@ -179,6 +180,7 @@ object Algorithms {
 		= {
 			if (steps == 0) g
 			else {
+				var tempV = v
 				val tempGraph = g.mapVertices {
 					case (id, label) => {
 						val nodeOutDegree = outDegrees(id).toFloat
@@ -188,13 +190,13 @@ object Algorithms {
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di input
 						val labelsIn: Map[VertexId, Float] = neighborsIn(id).map(adjId => {
 							val degree = 1 - ((nodeInDegree * outDegrees(adjId)) / (degrees(adjId) * nodeDegree))
-							(v(adjId), degree)
+							(tempV(adjId), degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di output
 						val labelsOut: Map[VertexId, Float] = neighborsOut(id).map(adjId => {
 							val degree = 1 - ((nodeOutDegree * inDegrees(adjId)) / (degrees(adjId) * nodeDegree))
-							(v(adjId), degree)
+							(tempV(adjId), degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
 						//Calcolo dei degree totali di ogni label mediante il merge tra le due map costruiti al punto precedente
@@ -210,7 +212,7 @@ object Algorithms {
 								val maxRepetitions = labels.maxBy(_._2)._2
 								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
 								val l = takeRandom(labelPool, new Random)
-								vertices.updated(id, l)
+								tempV = tempV.updated(id, l)
 								l
 							}
 							else label
@@ -218,7 +220,7 @@ object Algorithms {
 						newLabel
 					}
 				}
-				propagate(tempGraph, steps - 1, neighborsIn, neighborsOut, inDegrees, outDegrees, degrees, v)
+				propagate(tempGraph, steps - 1, neighborsIn, neighborsOut, inDegrees, outDegrees, degrees, tempV)
 			}
 		}
 
@@ -255,6 +257,7 @@ object Algorithms {
 		= {
 			if (steps == 0) g
 			else {
+				var tempV = v
 				val tempGraph: Graph[ListBuffer[VertexId], ED] = g.mapVertices {
 					//(id, (label, name)) rappresenta il nodo selezionato come listener
 					case (id, label) => {
@@ -264,8 +267,8 @@ object Algorithms {
 						//frequenza di una determinata label
 						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
 							//Calcolo delle label possibili
-							val totalNeighbors = v(adjId).size.toDouble
-							val possibleLabels = v(adjId).groupBy(identity).mapValues(_.size.toDouble).par
+							val totalNeighbors = tempV(adjId).size.toDouble
+							val possibleLabels = tempV(adjId).groupBy(identity).mapValues(_.size.toDouble).par
 							takeWeightedRandom(possibleLabels, new Random)
 						}).groupBy(identity).mapValues(_.size)
 
@@ -280,7 +283,7 @@ object Algorithms {
 								//Scelta random tra le label con numero di occorrenze più alto
 								val l = takeRandom(labelPool, new Random)
 								//Aggiornamento delle label associate al nodo listener
-								v.updated(id, label+=l)
+								tempV = tempV.updated(id, label+=l)
 
 								label+=l
 							}
@@ -289,7 +292,7 @@ object Algorithms {
 						newLabel
 					}
 				}
-				propagate(tempGraph, steps - 1, neighbors, v)
+				propagate(tempGraph, steps - 1, neighbors, tempV)
 			}
 		}
 
