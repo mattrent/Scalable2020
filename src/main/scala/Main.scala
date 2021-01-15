@@ -1,4 +1,5 @@
 import breeze.numerics.constants.e
+import org.apache.spark.graphx.lib.LabelPropagation
 import utils.GraphBuilder
 import utils.Algorithms
 import utils.Metrics
@@ -37,7 +38,7 @@ object Main extends App {
 
 			/*val graphLPA = Algorithms.SLPA(graph, 5)*/
 
-			spark.time(Algorithms.SLPA(graph, 5).vertices.collect)
+			Metrics.density(LabelPropagation.run(graph, 5)).collect.foreach(println)
 
 			/*println("Statistiche density: ")
 			Metrics.getStatistics(density.map(_._2))
