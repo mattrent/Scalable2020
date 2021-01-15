@@ -84,6 +84,9 @@ object Main extends App {
 
 			println("Arrivata")
 
+			val lpaGraph = Algorithms.DLPA(graph,5)
+			lpaGraph.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).foreach(println)
+
 
 	/**
 

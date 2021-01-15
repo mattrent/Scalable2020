@@ -1,6 +1,7 @@
 package utils
 
 import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, Pregel, VertexId}
+import org.apache.spark.sql.catalyst.expressions.ToDegrees
 
 import scala.collection.mutable.ListBuffer
 import scala.collection.parallel.{ParMap, ParSeq}
@@ -23,26 +24,32 @@ object Algorithms {
 		else graphSNN
 	}
 
-	def labelPropagationMR(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
+	/**
+	 * Metodo di calcolo classico di LPA
+	 * @param graph grafo su cui vogliamo identificare le community
+	 * @param maxSteps numero di cicli di label propagation
+	 * @return grafo suddiviso in community, per ogni nodo viene specificata la community di appartenenza
+	 */
+	def labelPropagationMR(graph: Graph[String, Int], maxSteps: Int): Graph[VertexId, Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
-		val lpaGraph = graph.mapVertices{ case (vid, name) => (vid, name) }
+		val lpaGraph = graph.mapVertices{ case (vid, _) => vid }
 		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
 		val vertices = lpaGraph.vertices.collectAsMap().par
 
-		def propagate(g: Graph[(VertexId, String), Int],
+		def propagate(g: Graph[VertexId, Int],
 					  steps: Int,
 					  neighbors: ParMap[VertexId, Array[VertexId]],
-					  v: ParMap[VertexId, (VertexId, String)]): Graph[(VertexId, String), Int]
+					  v: ParMap[VertexId, VertexId]): Graph[VertexId, Int]
 		= {
 			if (steps == 0) g
 			else {
 				val tempGraph = g.mapVertices {
-					case (id, (label, name)) => {
+					case (id, label) => {
 
 						//per ogni nodo adiacente cerco nel grafo la corrente etichetta => successivamente la mappo al suo numero di occorrenze
 						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
-							v(adjId)._1
+							v(adjId)
 						}).groupBy(identity).mapValues(_.size)
 
 						//la nuova etichetta del nodo è quella col maggior numero di occorrenze (cerco il massimo su _._2, altrimenti troverebbe l'id più alto)
@@ -51,12 +58,12 @@ object Algorithms {
 								val maxRepetitions = labels.maxBy(_._2)._2
 								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
 								val l = takeRandom(labelPool, new Random)
-								v.updated(id, (l, name))
+								v.updated(id, l)
 								l
 							}
 							else label
 
-						(newLabel, name)
+						newLabel
 					}
 				}
 				propagate(tempGraph, steps - 1, neighbors, v)
@@ -65,6 +72,8 @@ object Algorithms {
 
 		propagate(lpaGraph, maxSteps, neighbors, vertices)
 	}
+
+
 
 	def labelPropagationPregel(graph: Graph[String, Int], maxSteps: Int): Graph[VertexId, Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
@@ -129,11 +138,49 @@ object Algorithms {
 
 	}
 
-	def DLPA(graph: Graph[String, Int], maxSteps: Int): Graph[(VertexId, String), Int] = {
+	//METODO PER CALCOLO DEI PESI DELLE LABEL PER DLPA (SECONDO ME NON HA SENSO FARLO SEPARATO)
+	/**
+	def getWeightedLabels (labelType: String,
+												 neighbors: ParMap[VertexId, Array[VertexId]],
+												 inDegrees: ParMap[VertexId,Int],
+												 outDegrees: ParMap[VertexId,Int],
+												 degrees: ParMap[VertexId,Int],
+												 v: ParMap[VertexId, VertexId], id: VertexId ): Map[VertexId, Float]={
+
+		labelType match {
+			case "in"=>{
+				//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di input
+				val labelsIn: Map[VertexId, Float] = neighbors(id).map(adjId => {
+					val degree= 1-((inDegrees.getOrElse(id,0)*outDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
+					(v(adjId), degree)
+				}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
+				labelsIn
+			}
+			case "out"=>{
+				//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di output
+				val labelsOut: Map[VertexId, Float] = neighbors(id).map(adjId => {
+					val degree= 1-((outDegrees.getOrElse(id,0)*inDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
+					(v(adjId), degree)
+				}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
+				labelsOut
+			}
+		}
+
+	}
+	*/
+
+	/**
+	 * Variante del metodo classico di label propagation per la community detection specifico per i grafi diretti, chiamato
+	 * Directed Label Propagation Algorithm (DLPA).
+	 * @param graph grafo su cui vogliamo identificare le community
+	 * @param maxSteps numero di cicli di label propagation
+	 * @return grafo suddiviso in community, per ogni nodo viene specificata la community di appartenenza
+	 */
+	def DLPA(graph: Graph[String, Int], maxSteps: Int): Graph[VertexId, Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		//inizializzazione delle label dei vertici del grafo (ad ognuno di essi viene associata una label diversa)
-		val lpaGraph = graph.mapVertices{ case (vid, name) => (vid, name) }
+		val lpaGraph = graph.mapVertices{ case (vid, name) => vid }
 
 		//Calcolo dei vicini che sono collegati al nodo considerato mediante un arco in uscita dallo stesso
 		val neighborsOut = graph.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
@@ -150,28 +197,35 @@ object Algorithms {
 		//Calcolo del degree di ogni nodo
 		val degrees= graph.degrees.collectAsMap().par
 
-		def propagate(g: Graph[(VertexId, String), Int],
+		//Funzione di propagazione delle label da parte dei nodi del grafo
+		def propagate(g: Graph[VertexId, Int],
 									steps: Int,
 									neighborsIn: ParMap[VertexId, Array[VertexId]],
 									neighborsOut: ParMap[VertexId, Array[VertexId]],
-									v: ParMap[VertexId, (VertexId, String)]): Graph[(VertexId, String), Int]
+									v: ParMap[VertexId, VertexId]): Graph[VertexId, Int]
 		= {
 			if (steps == 0) g
 			else {
 				val tempGraph = g.mapVertices {
-					case (id, (label, name)) => {
-
+					case (id, label) => {
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di input
 						val labelsIn: Map[VertexId, Float] = neighborsIn(id).map(adjId => {
 							val degree= 1-((inDegrees.getOrElse(id,0)*outDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
-							(v(adjId)._1, degree)
+							(v(adjId), degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di output
 						val labelsOut: Map[VertexId, Float] = neighborsOut(id).map(adjId => {
 							val degree= 1-((outDegrees.getOrElse(id,0)*inDegrees.getOrElse(adjId,0)).toFloat/(degrees.getOrElse(adjId,0)*degrees.getOrElse(id,0)).toFloat)
-							(v(adjId)._1, degree)
+							(v(adjId), degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
+
+
+						/**
+            val labelsIn: Map[VertexId, Float] =getWeightedLabels("in",neighborsIn,inDegrees,outDegrees,degrees,v,id)
+
+						val labelsOut: Map[VertexId, Float] =getWeightedLabels("out",neighborsOut,inDegrees,outDegrees,degrees,v,id)
+						*/
 
 						//Calcolo dei degree totali di ogni label mediante il merge tra le due map costruiti al punto precedente
 						val labels: Map[VertexId, Float] = (labelsIn.keySet ++ labelsOut.keySet).map { l =>
@@ -186,12 +240,12 @@ object Algorithms {
 								val maxRepetitions = labels.maxBy(_._2)._2
 								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
 								val l = takeRandom(labelPool, new Random)
-								vertices.updated(id, (l, name))
+								vertices.updated(id, l)
 								l
 							}
 							else label
 
-						(newLabel, name)
+						newLabel
 					}
 				}
 				propagate(tempGraph, steps - 1, neighborsIn, neighborsOut, v)
@@ -202,11 +256,20 @@ object Algorithms {
 	}
 
 
-	def SLPA(graph: Graph[String, Int], maxSteps: Int): Graph[(ListBuffer[VertexId], String), Int] = {
+	/**
+	 * Variante del metodo classico di label propagation per la overlapping community detection, chiamato
+	 * Speaker-Listener Label Propagation Algortithm (SLPA).
+	 * Ad ogni nodo possono essere associate uno o più community label, in questo modo si identificano community sovrapposte
+	 * poichè saranno presenti dei nodi che appartengono a più community
+	 * @param graph grafo su cui vogliamo identificare le community
+	 * @param maxSteps numero di cicli di label propagation
+	 * @return grafo suddiviso in community, per ogni nodo viene specificata la lista di community di appartenenza
+	 */
+	def SLPA(graph: Graph[String, Int], maxSteps: Int): Graph[ListBuffer[VertexId], Int] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		//inizializzazione delle label dei vertici del grafo (ad ognuno di essi viene associata una label diversa)
-		val lpaGraph = graph.mapVertices{ case (vid, name) => (ListBuffer(vid), name) }
+		val lpaGraph = graph.mapVertices{ case (vid, name) => ListBuffer(vid) }
 
 		//Vertici del grafo come mappa
 		val vertices = lpaGraph.vertices.collectAsMap().par
@@ -215,24 +278,24 @@ object Algorithms {
 		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
 
 		//Funzione per le T=maxStep di propagazione delle label tra i nodi
-		def propagate (g: Graph[(ListBuffer[VertexId], String), Int],
+		def propagate (g: Graph[ListBuffer[VertexId], Int],
 									 steps: Int,
 									 neighbors: ParMap[VertexId, Array[VertexId]],
-									 v: ParMap[VertexId, (ListBuffer[VertexId], String)]): Graph[(ListBuffer[VertexId], String), Int]
+									 v: ParMap[VertexId, ListBuffer[VertexId]]): Graph[ListBuffer[VertexId], Int]
 		= {
 			if (steps == 0) g
 			else {
-				val tempGraph: Graph[(ListBuffer[VertexId], String), Int] = g.mapVertices {
+				val tempGraph: Graph[ListBuffer[VertexId], Int] = g.mapVertices {
 					//(id, (label, name)) rappresenta il nodo selezionato come listener
-					case (id, (label, name)) => {
+					case (id, label) => {
 
 						//Ogni vicino del nodo listebere invia a tale nodo una singola label scelta mediante la speaking rule:
 						//selezione casuale di un'etichetta dalla memoria del nodo vicino considerato con probabilità proporzionale alla
 						//frequenza di una determinata label
 						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
 							//Calcolo delle label possibili
-							val totalNeighbors = v(adjId)._1.size.toDouble
-							val possibleLabels = v(adjId)._1.groupBy(identity).mapValues(_.size.toDouble).par
+							val totalNeighbors = v(adjId).size.toDouble
+							val possibleLabels = v(adjId).groupBy(identity).mapValues(_.size.toDouble).par
 							takeWeightedRandom(possibleLabels, new Random)
 						}).groupBy(identity).mapValues(_.size)
 
@@ -247,13 +310,13 @@ object Algorithms {
 								//Scelta random tra le label con numero di occorrenze più alto
 								val l = takeRandom(labelPool, new Random)
 								//Aggiornamento delle label associate al nodo listener
-								v.updated(id, (label+=l, name))
+								v.updated(id, label+=l)
 
 								label+=l
 							}
 							else label
 
-						(newLabel, name)
+						newLabel
 					}
 				}
 				propagate(tempGraph, steps - 1, neighbors, v)
@@ -264,9 +327,9 @@ object Algorithms {
 		val postPropagateGraph=propagate(lpaGraph, maxSteps, neighbors, vertices)
 
 		//Fase di post processing
-		val postProcessingGraph: Graph[(ListBuffer[VertexId], String), Int] = postPropagateGraph.mapVertices {
+		val postProcessingGraph: Graph[ListBuffer[VertexId], Int] = postPropagateGraph.mapVertices {
 			//(id, (label, name)) rappresenta il nodo selezionato
-			case (id, (label, name)) => {
+			case (id, label) => {
 				//Calcolo del numero di occorrenze per ogni label
 				val occurrencesLabel= label.groupBy(identity).mapValues(_.size)
 				//Calcolo del numero di label
@@ -278,18 +341,19 @@ object Algorithms {
 				//Calcolo della lista di label la cui probabilità supera la soglia
 				val newLabelSet=labelNoDuplicates.filter(vid=>occurrencesLabel.getOrElse(vid, 0)/nLabel >= threashold)
 
-
-				(newLabelSet, name)
+				newLabelSet
 			}
 		}
 
 		postProcessingGraph
 	}
 
+	//Metodo di scelta random all'interno di una sequenza di label
 	private def takeRandom[A](sequence: ParSeq[A], random: Random): A = {
 		sequence(random.nextInt(sequence.length))
 	}
 
+	//Metodo di scelta random pesata all'interno di una sequenza di label
 	private def takeWeightedRandom[A](sequence: ParMap[A, Double], random: Random): A = {
 		val r = random.nextDouble()
 		val weights = sequence.values
@@ -300,6 +364,7 @@ object Algorithms {
 		elements(index)
 	}
 
+
 	private def weighNodes(graph: Graph[String, Int], policy: String): Graph[(VertexId, String, Double), Int] = {
 		policy match {
 			case "none" => graph.mapVertices{ case (vid, name) => (vid, name, 1D) }
@@ -309,5 +374,6 @@ object Algorithms {
 			}
 		}
 	}
+
 
 }
