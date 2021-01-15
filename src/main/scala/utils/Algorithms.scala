@@ -183,19 +183,19 @@ object Algorithms {
 				var tempV = v
 				val tempGraph = g.mapVertices {
 					case (id, label) => {
-						val nodeOutDegree = outDegrees(id).toFloat
-						val nodeDegree = degrees(id).toFloat
-						val nodeInDegree = inDegrees(id).toFloat
+						val nodeOutDegree = outDegrees.getOrElse(id, 0).toFloat
+						val nodeDegree = degrees.getOrElse(id, 0).toFloat
+						val nodeInDegree = inDegrees.getOrElse(id, 0).toFloat
 
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di input
 						val labelsIn: Map[VertexId, Float] = neighborsIn(id).map(adjId => {
-							val degree = 1 - ((nodeInDegree * outDegrees(adjId)) / (degrees(adjId) * nodeDegree))
+							val degree = 1 - ((nodeInDegree * outDegrees.getOrElse(adjId, 0)) / (degrees(adjId) * nodeDegree))
 							(tempV(adjId), degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
 						//Calcolo dei degree per le label dei nodi che sono associati al vertice considerato mediante un arco di output
 						val labelsOut: Map[VertexId, Float] = neighborsOut(id).map(adjId => {
-							val degree = 1 - ((nodeOutDegree * inDegrees(adjId)) / (degrees(adjId) * nodeDegree))
+							val degree = 1 - ((nodeOutDegree * inDegrees.getOrElse(adjId, 0)) / (degrees(adjId) * nodeDegree))
 							(tempV(adjId), degree)
 						}).groupBy(_._1).mapValues(pair => pair.map(_._2).sum)
 
