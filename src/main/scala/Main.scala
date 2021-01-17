@@ -1,10 +1,11 @@
-import breeze.numerics.constants.e
 import org.apache.spark.graphx.lib.LabelPropagation
 import utils.GraphBuilder
 import utils.Algorithms
 import utils.Metrics
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.graphx.{Edge, EdgeDirection, Graph, VertexId}
+
+import java.io.FileWriter
 
 
 
@@ -26,7 +27,9 @@ object Main extends App {
 		var csv = true
 		var steps = 10
 		var comm = false
-		var time = true
+		var time = false
+		var resultsFile = ""
+		var csvList = List.fill(13)(" ")
 
 
 		args.sliding(2,2).toList.collect {
@@ -39,6 +42,7 @@ object Main extends App {
 			case Array("--steps", s: String) => steps = s.toInt
 			case Array("--communities", flag: String) => comm = flag.toBoolean
 			case Array("--time", flag: String) => time = flag.toBoolean
+			case Array("--results", rFile: String) => resultsFile = rFile
 		}
 
 		assert(!(metrics && algorithm == "SLPA"), "Current metrics can't be calculated on overlapping communities")
@@ -50,6 +54,10 @@ object Main extends App {
 		println("Steps: " + steps)
 		println("Show metrics: " + metrics)
 		println("Show number of communities: " + comm)
+
+		csvList = csvList.updated(0, algorithm)
+		csvList = csvList.updated(1, steps.toString)
+		csvList = csvList.updated(2, simplify.toString)
 
 		val graph =
 			if (simplify) GraphBuilder.simplifyGraph(
@@ -70,6 +78,9 @@ object Main extends App {
 			if (algorithm == "SLPA") Algorithms.SLPA(graph, steps)
 			else null
 
+		if (slpaGraph != null) {
+			for (i <- 3 to 11) csvList = csvList.updated(i, "X")
+		}
 
 		if (metrics) {
 			val separability = Metrics.separability(lpaGraph)
@@ -77,10 +88,23 @@ object Main extends App {
 			val density = Metrics.density(lpaGraph)
 
 			println("Modularity: " + modularity)
+			csvList = csvList.updated(11, modularity.toString)
+
 			println("Separability statistics: ")
-			Metrics.getStatistics(separability.values).foreach(pair => println(pair._1 + ": " + pair._2))
+			val sepStats = Metrics.getStatistics(separability.values)
+			sepStats.foreach(pair => println(pair._1 + ": " + pair._2))
+			csvList = csvList.updated(3, sepStats("max").toString)
+			csvList = csvList.updated(4, sepStats("min").toString)
+			csvList = csvList.updated(5, sepStats("mean").toString)
+			csvList = csvList.updated(6, sepStats("median").toString)
+
 			println("Density statistics: ")
-			Metrics.getStatistics(density.values).foreach(pair => println(pair._1 + ": " + pair._2))
+			val densStats = Metrics.getStatistics(density.values)
+			densStats.foreach(pair => println(pair._1 + ": " + pair._2))
+			csvList = csvList.updated(7, densStats("max").toString)
+			csvList = csvList.updated(8, densStats("min").toString)
+			csvList = csvList.updated(9, densStats("mean").toString)
+			csvList = csvList.updated(10, densStats("median").toString)
 		}
 
 		if (comm) {
@@ -89,6 +113,7 @@ object Main extends App {
 				else slpaGraph.vertices.groupBy(_._2).keys.reduce((l1, l2) => l1.union(l2)).size
 			}
 			println("Total communities: " + communityAmount)
+			csvList = csvList.updated(12, communityAmount.toString)
 		}
 
 		if (time) {
@@ -101,6 +126,12 @@ object Main extends App {
 			}
 		}
 
+		if (resultsFile != "") {
+			val fw = new FileWriter(resultsFile, true)
+			fw.write(csvList.mkString(","))
+			fw.write("\n")
+			fw.close()
+		}
 
 
 
