@@ -31,7 +31,7 @@ object Algorithms {
 	 * @param maxSteps numero di cicli di label propagation
 	 * @return grafo suddiviso in community, per ogni nodo viene specificata la community di appartenenza
 	 */
-	def labelPropagationMR[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], maxSteps: Int): Graph[VertexId, ED] = {
+	def LPA_MR[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], maxSteps: Int): Graph[VertexId, ED] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		val lpaGraph = graph.mapVertices{ case (vid, _) => vid }
