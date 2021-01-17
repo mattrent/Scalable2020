@@ -16,110 +16,93 @@ object Main extends App {
 		  .builder
 		  .appName("Scalable2020")
 		  .getOrCreate()
-
 		val sc = spark.sparkContext
-		sc.setLogLevel("ERROR")
 
-		/* loading the files, skipping first line (csv header) */
-		/* load text file => drop first line => split on commas => create the node structure (or the edge structure) by converting the ids to long */
-
-		val graph = GraphBuilder.buildGraphFromFiles(sc, args(0), args(1), true)
-
-		//graph.triplets.collect.foreach(println)
-		/*val graphLabProp = LabelPropagation.run(graph,5)
-		graphLabProp.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
-
-		if (args.length > 2 && args(2) == "Trent") {
-			//TODO: test LPA performance on simplified graph
-
-			/*val graphSNN = Algorithms.SNN(graph, true)
-			graphSNN.triplets.collect.foreach(println)
-			GraphBuilder.export(graphSNN, "graphSNN.gexf")*/
-
-			/*val graphLPA = Algorithms.SLPA(graph, 5)*/
-
-			Metrics.density(LabelPropagation.run(graph, 5)).collect.foreach(println)
-
-			/*println("Statistiche density: ")
-			Metrics.getStatistics(density.map(_._2))
-			println("Statistiche separability: ")
-			Metrics.getStatistics(separability.map(_._2))*/
-
-			/*spark.time( density.collect )
-			spark.time( Metrics.getStatistics(density.map(_._2)) )*/
-
-			System.in.read
-			spark.stop()
-
-			//spark.time(Algorithms.labelPropagationMR(graph, 30).vertices.collect)
-
-			/*spark.time({
-				val graphLPA = Algorithms.labelPropagationMR(graph, 30)
-				graphLPA.vertices.collect
-			})
-
-			spark.time({
-				val graphLPA_old = Algorithms.labelPropagationMR_old(graph, 30)
-				graphLPA_old.vertices.collect
-			})*/
+		var vertFile = ""
+		var edgeFile = ""
+		var algorithm = "LPA"
+		var simplify = false
+		var metrics = false
+		var csv = true
+		var steps = 10
+		var comm = false
+		var time = true
 
 
-			/*val graphLPA = Algorithms.labelPropagationPregel(graph, 5)
-			spark.time(Metrics.density(graphLPA).collect)*/
-
-			/*val file = new File("graphLPA_MR.txt")
-			val bw = new BufferedWriter(new FileWriter(file))
-			graphLPA.vertices.foreach(v => bw.write(v.toString()))*/
-
-			/*val file_old = new File("graphLPA_MR_old.txt")
-			val bw_old = new BufferedWriter(new FileWriter(file_old))
-			graphLPA_old.vertices.foreach(v => bw_old.write(v.toString()))*/
-
-
-			//lpaGraph.vertices.groupBy(_._2._1).mapValues(_.size).foreach(println)
-		} else {
-			/**val lpaGraph = Algorithms.labelPropagation(sc, graph,5);
-			lpaGraph.vertices.collect.foreach(println)*/
-			/**val lpaGraph = Algorithms.labelPropagationPregel(graph,5);
-			lpaGraph.vertices.groupBy(_._2).foreach(group => println((group._1, group._2.size)))*/
-
-			println("Arrivata")
-
-			val lpaGraph = Algorithms.DLPA(graph,5)
-			lpaGraph.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).foreach(println)
-
-
-	/**
-
-			//Creazione del grafo senza nodi isolati
-			val graphWithoutIsoltedNode = GraphBuilder.simplifyGraph(graph)
-
-			println("Numero archi vecchio grafo: "+graph.edges.count()+" --- Numero nodi vecchio grafo: "+graph.vertices.count())
-			println("Numero archi nuovo grafo: "+graphWithoutIsoltedNode.edges.count()+" --- Numero nodi nuovo grafo: "+graphWithoutIsoltedNode.vertices.count())
-			println("")
-			println("Confronto tra LPA con pregel")
-			println("Grafo con nodi isolati")
-			val graphLPA1=Algorithms.labelPropagationPregel(graph,5)
-			println("Numero community "+graphLPA1.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
-
-			println("Grafo senza nodi isolati")
-			val graphLPA2=Algorithms.labelPropagationPregel(graphWithoutIsoltedNode,5)
-			println("Numero community "+graphLPA2.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).count())
-			*/
-			
-			/**
-			println("")
-			println("Confronto tra LPA map reduce")
-			println("Grafo con nodi isolati")
-			spark.time(
-				Algorithms.labelPropagationMR(graph,5)
-			)
-			println("Grafo senza nodi isolati")
-			spark.time(
-				Algorithms.labelPropagationMR(graphWithoutIsoltedNode,5)
-			)
-			*/
+		args.sliding(2,2).toList.collect {
+			case Array("--vertices", vFile: String) => vertFile = vFile
+			case Array("--edges", eFile: String) => edgeFile = eFile
+			case Array("--csv", flag: String) => csv = flag.toBoolean
+			case Array("--simplify", flag: String) => simplify = flag.toBoolean
+			case Array("--metrics", flag: String) => metrics = flag.toBoolean
+			case Array("--algorithm", algName: String) => algorithm = algName
+			case Array("--steps", s: String) => steps = s.toInt
+			case Array("--communities", flag: String) => comm = flag.toBoolean
+			case Array("--time", flag: String) => time = flag.toBoolean
 		}
+
+		assert(!(metrics && algorithm == "SLPA"), "Current metrics can't be calculated on overlapping communities")
+		assert((steps > 0), "There needs to be a positive number of steps")
+
+		println("Vertices file: " + vertFile)
+		println("Edges file: " + edgeFile)
+		println("Simplified graph with SNN: " + simplify)
+		println("Steps: " + steps)
+		println("Show metrics: " + metrics)
+		println("Show number of communities: " + comm)
+
+		val graph =
+			if (simplify) GraphBuilder.simplifyGraph(
+				Algorithms.SNN(
+					GraphBuilder.buildGraphFromFiles(sc, vertFile, edgeFile, true)
+				)
+			)
+			else GraphBuilder.buildGraphFromFiles(sc, vertFile, edgeFile, true)
+
+		val lpaGraph = algorithm match {
+			case "LPA" => Algorithms.LPA_MR(graph, steps)
+			case "DLPA" => Algorithms.DLPA(graph, steps)
+			case "LPA_spark" => LabelPropagation.run(graph, steps)
+			case default => null
+		}
+
+		val slpaGraph =
+			if (algorithm == "SLPA") Algorithms.SLPA(graph, steps)
+			else null
+
+
+		if (metrics) {
+			val separability = Metrics.separability(lpaGraph)
+			val modularity = Metrics.modularity(lpaGraph)
+			val density = Metrics.density(lpaGraph)
+
+			println("Modularity: " + modularity)
+			println("Separability statistics: ")
+			Metrics.getStatistics(separability.values).foreach(pair => println(pair._1 + ": " + pair._2))
+			println("Density statistics: ")
+			Metrics.getStatistics(density.values).foreach(pair => println(pair._1 + ": " + pair._2))
+		}
+
+		if (comm) {
+			val communityAmount = {
+				if (slpaGraph == null) lpaGraph.vertices.groupBy(_._2).keys.count()
+				else slpaGraph.vertices.groupBy(_._2).keys.reduce((l1, l2) => l1.union(l2)).size
+			}
+			println("Total communities: " + communityAmount)
+		}
+
+		if (time) {
+			println("Execution time (algorithm + vertices collect): ")
+			algorithm match {
+				case "LPA" => spark.time(Algorithms.LPA_MR(graph, steps).vertices.collect())
+				case "DLPA" => spark.time(Algorithms.DLPA(graph, steps).vertices.collect())
+				case "LPA_spark" => spark.time(LabelPropagation.run(graph, steps).vertices.collect())
+				case "SLPA" => spark.time(Algorithms.SLPA(graph, steps).vertices.collect())
+			}
+		}
+
+
+
 
 	}
 
