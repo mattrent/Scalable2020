@@ -85,8 +85,9 @@ object Main extends App {
 
 			println("Arrivata")
 
-			val lpaGraph = Algorithms.DLPA(graph,5)
-			lpaGraph.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1))).foreach(println)
+			val lpaGraph = LabelPropagation.run(graph,5)
+			val comm=lpaGraph.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1)))
+			println(comm.count())
 
 
 	/**
