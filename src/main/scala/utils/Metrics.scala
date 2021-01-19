@@ -118,8 +118,8 @@ object Metrics {
 		val ordered = metricOutput.sortBy(identity, ascending = false).zipWithIndex().map{
 			case (value, index) => (index, value)
 		}
-		val max = ordered.lookup(m - 1).head
-		val min = ordered.lookup(0).head
+		val min = ordered.lookup(m - 1).head
+		val max = ordered.lookup(0).head
 		val median =
 			if (m % 2 == 0) (ordered.lookup(m/2 - 1).head + ordered.lookup(m/2).head) / 2
 			else ordered.lookup((m + 1)/2 - 1).head
