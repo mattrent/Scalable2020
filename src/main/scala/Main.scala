@@ -115,7 +115,7 @@ object Main extends App {
 		if (comm) {
 			val communityAmount = {
 				if (slpaGraph == null) lpaGraph.vertices.groupBy(_._2).keys.count()
-				else slpaGraph.vertices.groupBy(_._2).keys.reduce((l1, l2) => l1.union(l2)).size
+				else slpaGraph.vertices.groupBy(_._2).keys.reduce((l1, l2) => l1.union(l2)).toSet.size
 			}
 			println("Total communities: " + communityAmount)
 			csvList = csvList.updated(12, communityAmount.toString)
