@@ -123,6 +123,7 @@ object Main extends App {
 				case "LPA" => spark.time(Algorithms.LPA_MR(graph, steps).vertices.collect())
 				case "DLPA" => spark.time(Algorithms.DLPA(graph, steps).vertices.collect())
 				case "LPA_spark" => spark.time(LabelPropagation.run(graph, steps).vertices.collect())
+				case "LPA_pregel" => spark.time(Algorithms.labelPropagationPregel(graph, steps).vertices.collect())
 				case "SLPA" => spark.time(Algorithms.SLPA(graph, steps).vertices.collect())
 			}
 		}
@@ -135,7 +136,5 @@ object Main extends App {
 		}
 
 	}
-
-
 
 }
