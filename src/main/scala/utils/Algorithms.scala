@@ -1,6 +1,7 @@
 package utils
 
 import org.apache.spark.graphx.{Edge, EdgeDirection, EdgeTriplet, Graph, Pregel, VertexId}
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.catalyst.expressions.ToDegrees
 
 import scala.collection.mutable.ListBuffer
@@ -73,6 +74,60 @@ object Algorithms {
 		}
 
 		propagate(lpaGraph, maxSteps, neighbors, vertices)
+	}
+
+
+	def LPA_MR_Shuffle[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], maxSteps: Int): Graph[VertexId, ED] = {
+		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
+
+		//shuffle dei vertici su ogni partizione (in ogni partizione c'è un array di VertexId => mescolo quello) => la funzione viene chiamata una volta per partizione, non per elemento
+		val shuffledVertices = graph.vertices.mapPartitions(Random.shuffle(_)).map{case (vid, _) => (vid, vid)}
+		val neighbors = graph.collectNeighborIds(EdgeDirection.Either).collectAsMap().par
+		val verticesMap = shuffledVertices.collectAsMap().par
+
+
+		def propagate(v: RDD[(VertexId, VertexId)],
+					  steps: Int,
+					  neighbors: ParMap[VertexId, Array[VertexId]],
+					  vertMap: ParMap[VertexId, VertexId]): RDD[(VertexId, VertexId)]
+		= {
+			var tempVertMap = vertMap
+			if (steps == 0) v
+			else {
+				val tempV = v.map {
+					case (id, label) => {
+						val labels: Map[VertexId, Int] = neighbors(id).map(adjId => {
+							tempVertMap(adjId)
+						}).groupBy(identity).mapValues(_.size)
+
+						val newLabel =
+							if (labels.size > 0) {
+								val maxRepetitions = labels.maxBy(_._2)._2
+								val labelPool = labels.filter(l => l._2 == maxRepetitions).keys.toSeq.par
+								val l = takeRandom(labelPool, new Random)
+								tempVertMap = tempVertMap.updated(id, l)
+								l
+							}
+							else label
+
+						(id, newLabel)
+					}
+				}
+				propagate(tempV, steps - 1, neighbors, tempVertMap)
+
+			}
+		}
+
+		val newVertices = propagate(shuffledVertices, maxSteps, neighbors, verticesMap)
+
+		val lpaGraph = graph.mapVertices {
+			case (vid, _) => vid
+		}
+		  .joinVertices(newVertices) {
+				(id, _, label) => label
+			}
+
+		lpaGraph
 	}
 
 

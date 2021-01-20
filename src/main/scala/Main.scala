@@ -76,6 +76,7 @@ object Main extends App {
 			case "DLPA" => Algorithms.DLPA(graph, steps)
 			case "LPA_spark" => LabelPropagation.run(graph, steps)
 			case "LPA_pregel" => Algorithms.labelPropagationPregel(graph, steps)
+			case "LPA_shuffle" => Algorithms.LPA_MR_Shuffle(graph, steps)
 			case default => null
 		}
 
@@ -129,6 +130,7 @@ object Main extends App {
 				case "LPA_spark" => spark.time(LabelPropagation.run(graph, steps).vertices.collect())
 				case "LPA_pregel" => spark.time(Algorithms.labelPropagationPregel(graph, steps).vertices.collect())
 				case "SLPA" => spark.time(Algorithms.SLPA(graph, steps,r).vertices.collect())
+				case "LPA_shuffle" => spark.time(Algorithms.LPA_MR_Shuffle(graph, steps).vertices.collect())
 			}
 		}
 
