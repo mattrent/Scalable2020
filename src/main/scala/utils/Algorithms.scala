@@ -237,7 +237,7 @@ object Algorithms {
 	 * @param maxSteps numero di cicli di label propagation
 	 * @return grafo suddiviso in community, per ogni nodo viene specificata la lista di community di appartenenza
 	 */
-	def SLPA[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], maxSteps: Int): Graph[ListBuffer[VertexId], ED] = {
+	def SLPA[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], maxSteps: Int, r: Double): Graph[ListBuffer[VertexId], ED] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
 		//inizializzazione delle label dei vertici del grafo (ad ognuno di essi viene associata una label diversa)
@@ -308,7 +308,7 @@ object Algorithms {
 				//Calcolo del numero di label
 				val nLabel=occurrencesLabel.keySet.size
 				//Definizione del threashold
-				val threashold= 0.5
+				val threashold=r
 				//Eliminiamo i duplicati nella lista delle label del nodo
 				val labelNoDuplicates= label.distinct
 				//Calcolo della lista di label la cui probabilità supera la soglia

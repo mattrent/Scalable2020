@@ -28,6 +28,7 @@ object Main extends App {
 		var steps = 10
 		var comm = false
 		var time = false
+		var r= 0.05
 		var resultsFile = ""
 		var csvList = List.fill(13)(" ")
 
@@ -43,6 +44,7 @@ object Main extends App {
 			case Array("--communities", flag: String) => comm = flag.toBoolean
 			case Array("--time", flag: String) => time = flag.toBoolean
 			case Array("--results", rFile: String) => resultsFile = rFile
+			case Array("--r", threshold: String) => r = threshold.toFloat
 		}
 
 		assert(!(metrics && algorithm == "SLPA"), "Current metrics can't be calculated on overlapping communities")
@@ -54,6 +56,8 @@ object Main extends App {
 		println("Steps: " + steps)
 		println("Show metrics: " + metrics)
 		println("Show number of communities: " + comm)
+
+		if(algorithm == "SLPA") println("Threshold: "+r)
 
 		csvList = csvList.updated(0, algorithm)
 		csvList = csvList.updated(1, steps.toString)
@@ -76,7 +80,7 @@ object Main extends App {
 		}
 
 		val slpaGraph =
-			if (algorithm == "SLPA") Algorithms.SLPA(graph, steps)
+			if (algorithm == "SLPA") Algorithms.SLPA(graph, steps, r)
 			else null
 
 		if (slpaGraph != null) {
@@ -124,7 +128,7 @@ object Main extends App {
 				case "DLPA" => spark.time(Algorithms.DLPA(graph, steps).vertices.collect())
 				case "LPA_spark" => spark.time(LabelPropagation.run(graph, steps).vertices.collect())
 				case "LPA_pregel" => spark.time(Algorithms.labelPropagationPregel(graph, steps).vertices.collect())
-				case "SLPA" => spark.time(Algorithms.SLPA(graph, steps).vertices.collect())
+				case "SLPA" => spark.time(Algorithms.SLPA(graph, steps,r).vertices.collect())
 			}
 		}
 
