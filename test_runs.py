@@ -1,13 +1,13 @@
 import subprocess
 
-filename = "/target/scala-2.12/Scalable2020.jar"
+filename = "target/scala-2.12/Scalable2020.jar"
 steps = range(20, 110, 10)
 algorithms = ["SLPA"]
 metrics = "true"
 communities = "true"
-nodeFile = "/data/musae_git_target.csv"
-edgeFile = "/data/musae_git_edges.csv"
-results = "results_SLPA.csv"
+nodeFile = "data/musae_git_target.csv"
+edgeFile = "data/musae_git_edges.csv"
+results = "results.csv"
 simplify = ["false", "true"]
 time="true"
 thresholds=["0.01","0.05","0.1"]

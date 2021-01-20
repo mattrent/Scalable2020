@@ -28,9 +28,9 @@ object Main extends App {
 		var steps = 10
 		var comm = false
 		var time = false
-		var r= 0.05
+		var r = 0.05
 		var resultsFile = ""
-		var csvList = List.fill(13)(" ")
+		var csvList = List.fill(14)(" ")
 
 
 		args.sliding(2,2).toList.collect {
@@ -130,6 +130,12 @@ object Main extends App {
 				case "LPA_pregel" => spark.time(Algorithms.labelPropagationPregel(graph, steps).vertices.collect())
 				case "SLPA" => spark.time(Algorithms.SLPA(graph, steps,r).vertices.collect())
 			}
+		}
+
+		if (slpaGraph == null) {
+			csvList = csvList.updated(13, "X")
+		} else {
+			csvList = csvList.updated(13, r.toString)
 		}
 
 		if (resultsFile != "") {
