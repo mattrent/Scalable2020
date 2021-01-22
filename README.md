@@ -58,7 +58,7 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 - Cliccare su Crea bucket
 - Inserire il nome del bucket e cliccare sul bottone Crea bucket per completare l'operazione
 8) Fare click sul bucket appena creato ed eseguire i seguenti passaggi:
-- Caricare una caretalla `data` contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: LINK, su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
+- Caricare una cartella `data` contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: LINK, su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
 -Caricare il file jar `Scalable2020-assembly-0.1.jar` creato al punto 1 e attendere il caricamento completo del file
 ![ ](/img/s3_completato.png  "Schermata di caricamento su s3 completato") 
 9) Tornare alla pagina relativa a AWS Console
@@ -83,5 +83,5 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 - Cliccare sulla cartella application relativa alla fase di cui si vuole vedere l'output
 - Cliccare sulla prima cartella container
 - Cliccare sul file stdout.gz
-- Fare click su Operazioni sugli oggetti e selezionare Apri
+- Fare click su Operazioni sugli oggetti e cliccare su Apri
 ![ ](/img/output.png  "Contenuto file di output")
