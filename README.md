@@ -65,8 +65,8 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 - Cliccare su *Crea bucket*
 - Inserire il nome del bucket e cliccare sul bottone *Crea bucket* per completare l'operazione
 8) Fare click sul bucket appena creato ed eseguire i seguenti passaggi:
-- Caricare una cartella *data* contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: [](https://www.kaggle.com/rozemberczki/musae-github-social-network) , su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
--Caricare il file jar `Scalable2020-assembly-0.1.jar` creato al punto 1 e attendere il caricamento completo del file
+- Caricare una cartella *data* contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: [Link dataset](https://www.kaggle.com/rozemberczki/musae-github-social-network), su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
+- Caricare il file jar `Scalable2020-assembly-0.1.jar` creato al punto 1 e attendere il caricamento completo del file
 ![ ](/img/s3_completato.png  "Schermata di caricamento su s3 completato")
 9) Tornare alla pagina relativa a AWS Console
 10) Selezionare il servizio *EMR*
@@ -78,7 +78,7 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 ![ ](/img/configurazione_cluster.png  "Configurazione del cluster ")
 12) Cliccare sulla sezione *Fasi* del cluster appena creato
 13) Cliccare su *Aggiungi fase*
--Selezionare *Applicazione Spark* come tipologia di fase
+- Selezionare *Applicazione Spark* come tipologia di fase
 - Selezionare il jar contenuto nel bucket di s3 sul quale si è precedentemente caricata l'applicazione che si intende eseguire
 - Nel campo argomenti specificare, come esempio sono stati utilizzati i seguenti argomenti: `--vertices s3://scalable2020/data/musae_git_target.csv --edges s3://scalable2020/data/musae_git_edges.csv --csv false --simplify false --metrics false --algorithm LPA --steps 20 --metrics false --time true --communities true`
 ![ ](/img/fase_cluster.png  "Configurazione della fase del cluster")
