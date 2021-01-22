@@ -15,6 +15,12 @@ Gli algoritmi di tale tipo implementati all'interno del progetto sono i seguenti
     - LPA con Pregel
 - *Overlapping Community Detection*: ad ogni nodo del grafo viene attribuita una lista di label rappresentante le diverse community di appartenenza. L'algoritmo implementato all'interno del codice di tale progetto è SLPA (Speaker Listener Label Propagation Algorithm).
 
+## Contenuto del repository
+- Codice del progetto
+- `test_run,py` script python per l'esecuzione automatizzata dei test del progetto
+- `Presentazione.pdf`file di presentazione del progetto
+- `Report risultati.pdf` file contenente l'analisi di tutti i risultati ottenuti e confronto tra i diversi algoritmi di Non-Overlapping Community Detection
+
 ## Modalità di esecuzione dei test in locale
 Per eseguire i test relativi al progetto è necessario eseguire i seguenti passi:
 1) Eseguire il comando `sbt package` all'interno della cartella del progetto, questo comando costruirà il file jar relativo al progetto all'interno della cartella `Scalable2020/target/scala-2.12` chiamato `Scalable2020.jar`.
