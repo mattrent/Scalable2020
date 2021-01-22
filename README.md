@@ -18,6 +18,7 @@ Gli algoritmi di tale tipo implementati all'interno del progetto sono i seguenti
 ## Contenuto del repository
 - Codice del progetto
 - `test_run,py` script python per l'esecuzione automatizzata dei test del progetto
+- file csv contenenti i risultati dei test
 - `Presentazione.pdf`file di presentazione del progetto
 - `Report risultati.pdf` file contenente l'analisi di tutti i risultati ottenuti e confronto tra i diversi algoritmi di Non-Overlapping Community Detection
 
