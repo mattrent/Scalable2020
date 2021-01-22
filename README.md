@@ -1,5 +1,4 @@
-# Progetto Scalable and Cloud Programming
-# Community Detection
+# Progetto Scalable and Cloud Programming: Community Detection
 ## Obiettivi
 - Implementazione di diverse versioni del Label Propagation Algorithm per la Community Detection
 - Implementazione di diverse metriche utili per la valutazione delle community individuate dai differenti algoritmi
