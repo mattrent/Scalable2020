@@ -39,7 +39,7 @@ Per eseguire il test su uno di questi algoritmi è necessario specificare i segu
 - `--steps <numero_step>`: per specificare il numero di step di Label Propagation.
 - `--metrics  <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algoritmo.
 - `--time  <true|false>`: specificando `true` si richiede il calcolo del tempo necessario per eseguire l'algoritmo, tale tampo di calcolo viene misurato utilizzando`spark.time`.
-- `--communities <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algortmo.
+- `--communities <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algoritmo.
 - `--results  <path_file_output>`: per specificare il file di output.
 ### Analisi di SLPA
 Essendo SLPA l'unico algoritmo di Overlapping Community Detection implementato all'interno di questo progetto si è effettuata solamente un'analisi delle sue prestazioni senza effettuare nessun confronto.
@@ -51,8 +51,8 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 -`--algorithm  SLPA`
 - ` --steps <numero_step>`: per specificare il numero di step di Label Propagation, per SLPA il numero minimo di step è 20 e il numero massimo è 100.
 - `--time  <true|false>`: specificando `true` si richiede il calcolo del tempo necessario per eseguire l'algoritmo, tale tampo di calcolo viene misurato utilizzando `spark.time`.
-- `--communities <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algortmo.
-- `--results  <path\_file\_output>`: per specificare il file di output.
+- `--communities <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algoritmo.
+- `--results  <path_file_output>`: per specificare il file di output.
 - `--r  <valore>`: soglia necessaria per la fase di post-processing dell'algoritmo, il valore di tale soglia è compreso tra [ 0.01, 0.1 ]
 ## Caricamento ed esecuzione su cloud
 1) Eseguire il comando `sbt assembly` all'interno della cartella del progetto, questo comando costruirà il file jar relativo al progetto con tutte le dipendenze all'interno della cartella `Scalable2020/target/scala-2.12` chiamato `Scalable2020-assembly-0.1.jar`.
