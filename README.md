@@ -17,15 +17,15 @@ Gli algoritmi di tale tipo implementati all'interno del progetto sono i seguenti
 
 ## Contenuto del repository
 - Codice del progetto
-- `test_run,py` script python per l'esecuzione automatizzata dei test del progetto
+- `test_run.py` script python per l'esecuzione automatizzata dei test del progetto
 - file csv contenenti i risultati dei test
 - `Presentazione.pdf`file di presentazione del progetto
-- `Report risultati.pdf` file contenente l'analisi di tutti i risultati ottenuti e confronto tra i diversi algoritmi di Non-Overlapping Community Detection
+- `Report risultati test.pdf` file contenente l'analisi di tutti i risultati ottenuti, analisi di SLPA e confronto tra i diversi algoritmi di Non-Overlapping Community Detection
 
 ## Modalità di esecuzione dei test in locale
 Per eseguire i test relativi al progetto è necessario eseguire i seguenti passi:
 1) Eseguire il comando `sbt package` all'interno della cartella del progetto, questo comando costruirà il file jar relativo al progetto all'interno della cartella `Scalable2020/target/scala-2.12` chiamato `Scalable2020.jar`.
-2) Eseguire il comando: 
+2) Eseguire il comando:
 	`spark-submit --master local[*] Scalable2020/target/scala-2.12/Scalable2020.jar <argomenti>`
 Gli argomenti da specificare sono descritti in modo dettagliato nelle successive sezioni.
 ### Algoritmi di Non-Overlapping Community Detection
@@ -67,7 +67,7 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 8) Fare click sul bucket appena creato ed eseguire i seguenti passaggi:
 - Caricare una cartella `data` contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: LINK, su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
 -Caricare il file jar `Scalable2020-assembly-0.1.jar` creato al punto 1 e attendere il caricamento completo del file
-![ ](/img/s3_completato.png  "Schermata di caricamento su s3 completato") 
+![ ](/img/s3_completato.png  "Schermata di caricamento su s3 completato")
 9) Tornare alla pagina relativa a AWS Console
 10) Selezionare il servizio EMR
 11) Cliccare su Crea cluster
@@ -85,7 +85,7 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 14) Una volta completata l'esecuzione sarà possibile vedere il risultato di output andando su s3 ed eseguendo le eseguenti operazioni:
 - Cliccare sul bucket di log
 - Cliccare su elasticmapreduce/
-- Cliccare sulla cartella corrispondente all'identificativo del cluster 
+- Cliccare sulla cartella corrispondente all'identificativo del cluster
 - Cliccare su containers/
 - Cliccare sulla cartella application relativa alla fase di cui si vuole vedere l'output
 - Cliccare sulla prima cartella container

@@ -8,6 +8,14 @@ import scala.collection.parallel.ParMap
 
 object Metrics {
 
+	/**
+	 * Metodo che calcola la metrica di density per ogni community individuata dall'algoritmo di Community Detection.
+	 * Nello specifico, tale algoritmo calcola per ogni community il rapporto tra: 2 * numero di archi tra i nodi all’interno
+	 * della community e il numero degli archi possibili tra i nodi della community
+	 * (dimensione della community moltiplicato per dimensione della community - 1)
+	 * @param graphLPA grafo su cui è stato eseguito l'algoritmo di community detection
+	 * @return RDD contenente coppie (nome Community, grado Separability)
+	 */
 	def density(graphLPA: Graph[VertexId, Int]): RDD[(VertexId, Double)] = {
 		val community = graphLPA.vertices.groupBy(_._2).map(group => (group._1, group._2.map(pair => pair._1)))
 		val neighbors = graphLPA.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
@@ -20,6 +28,14 @@ object Metrics {
 		internalDensity
 	}
 
+	/**
+	 * Metodo che calcola il denominatore della formula per calcolare la density di una community.
+	 * Nello specifico, tale algoritmo calcola per ogni community il rapporto tra: dimensione della community moltiplicato
+	 * per dimensione della community - 1.
+	 * Questo valore sarà pari a zero quando la community considerata è composta da un solo elemento
+	 * @param community community del grafo da analizzare
+	 * @return numero di possibili archi tra i nodi della community
+	 */
 	private def possibleCommunityEdges(community: (VertexId, Iterable[VertexId])): Double = {
 		community._2.size * (community._2.size - 1).toDouble
 	}
