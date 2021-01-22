@@ -76,6 +76,14 @@ object Metrics {
 		internalSeparability
 	}
 
+	/**
+	 * Funzione per il calcolo della modularity di un grafo diviso in community.
+	 * Con una buona suddivisione ci si aspetta una modularity più alta, ad indicare una maggiore densità di collegamento all'interno dei gruppi, ma una scarsità di archi tra un gruppo e l'altro.
+	 * La modularity effettiva viene calcolata come la frazione degli archi interni ai gruppi, meno la frazione attesa se gli archi fossero distribuiti casualmente.
+	 * La casualità degli archi viene espressa utilizzando il grado uscente ed entrante dei singoli nodi.
+	 * @param graphLPA Grafo etichettato risultante da community detection
+	 * @return Valore della modularity del grafo
+	 */
 	def modularity(graphLPA: Graph[VertexId, Int]): Double = {
 		val neighborsOut = graphLPA.collectNeighborIds(EdgeDirection.Out).collectAsMap().par
 		val inDegrees = graphLPA.inDegrees.collectAsMap().par

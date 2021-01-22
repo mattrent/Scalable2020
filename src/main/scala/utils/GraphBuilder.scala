@@ -4,6 +4,14 @@ import org.apache.spark.SparkContext
 import org.apache.spark.graphx.{EdgeDirection, Graph}
 
 object GraphBuilder {
+	/**
+	 * Funzione di costruzione di un grafo a partire da file di nodi e archi.
+	 * Viene prima effettuata la costruzione a partire dagli archi, e successivamente un join sui nodi per memorizzarne eventuali proprietà.
+	 * @param nodeFile File contenente i nodi
+	 * @param edgeFile File contenente gli archi
+	 * @param csv Flag indicativo del fatto che si stia lavorando o meno con dei file csv (dotati di header)
+	 * @return
+	 */
 	def buildGraphFromFiles(sc: SparkContext, nodeFile: String, edgeFile: String, csv: Boolean): Graph[String, Int] = {
 		/*
 		loading the files, skipping first line (csv header)
@@ -31,6 +39,11 @@ object GraphBuilder {
 		graph
 	}
 
+	/**
+	 * Funzione di esportazione di un grafo in formato .gexf, per visualizzazione successiva su gephi.
+	 * @param graph Grafo pesato da esportare
+	 * @param fileName Nome del file di output
+	 */
 	def export[VD, ED](graph: Graph[VD, ED], fileName: String) = {
 		def toGexf[VD,ED](g:Graph[VD,ED]) =
 			"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +

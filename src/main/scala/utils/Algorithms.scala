@@ -27,7 +27,7 @@ object Algorithms {
 	}
 
 	/**
-	 * Metodo di calcolo classico di LPA
+	 * Algoritmo classico di Label Propagation basato su Map.
 	 * @param graph grafo su cui vogliamo identificare le community
 	 * @param maxSteps numero di cicli di label propagation
 	 * @return grafo suddiviso in community, per ogni nodo viene specificata la community di appartenenza
@@ -76,7 +76,12 @@ object Algorithms {
 		propagate(lpaGraph, maxSteps, neighbors, vertices)
 	}
 
-
+	/**
+	 * Variante di LPA_MR, in cui i nodi del grafo presenti su ogni partizione vengono prima ordinati casualmente.
+	 * @param graph Grafo su cui identificare le community
+	 * @param maxSteps Numero di ripetizioni dell'algoritmo
+	 * @return Grafo suddiviso in community, per ogni nodo viene specificata la community di appartenenza
+	 */
 	def LPA_MR_Shuffle[VD: ClassTag, ED: ClassTag](graph: Graph[VD, ED], maxSteps: Int): Graph[VertexId, ED] = {
 		require(maxSteps > 0, s"Maximum of steps must be greater than 0, but got ${maxSteps}")
 
@@ -120,6 +125,7 @@ object Algorithms {
 
 		val newVertices = propagate(shuffledVertices, maxSteps, neighbors, verticesMap)
 
+		//poiché 'propagate' ora restituisce un RDD di nodi, è necessario applicare le modifiche al grafo utilizzando un join
 		val lpaGraph = graph.mapVertices {
 			case (vid, _) => vid
 		}
@@ -376,12 +382,23 @@ object Algorithms {
 		postProcessingGraph
 	}
 
-	//Metodo di scelta random all'interno di una sequenza di label
+	/**
+	 * Funzione di selezione casuale all'interno di una sequenza. Viene generato un intero casuale da 0 a sequence.length, che viene poi usato come indice.
+	 * @param sequence sequenza di elementi di tipo variabile
+	 * @param random generatore di numeri casuali
+	 * @return elemento casuale della sequenza
+	 */
 	private def takeRandom[A](sequence: ParSeq[A], random: Random): A = {
 		sequence(random.nextInt(sequence.length))
 	}
 
-	//Metodo di scelta random pesata all'interno di una sequenza di label
+	/**
+	 * Funzione di selezione casuale pesata tra una serie di valori. Viene passata una mappa (valore -> peso), dalla quale si estraggono chiavi e valori in sequenze separate.
+	 * I pesi vengono poi normalizzati tra 0 e 1, per essere usati come probabilità relative ad ogni elemento.
+	 * @param sequence una mappa tra i valori di una sequenza (tra cui verrà scelto il risultato) e i loro relativi pesi
+	 * @param random generatore di numeri casuali
+	 * @return elemento casuale scelto tra le chiavi della mappa
+	 */
 	private def takeWeightedRandom[A](sequence: ParMap[A, Double], random: Random): A = {
 		val r = random.nextDouble()
 		val weights = sequence.values
