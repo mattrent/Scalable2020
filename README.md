@@ -19,10 +19,8 @@ Gli algoritmi di tale tipo implementati all'interno del progetto sono i seguenti
 ## Modalità di esecuzione dei test in locale
 Per eseguire i test relativi al progetto è necessario eseguire i seguenti passi:
 1) Eseguire il comando `sbt package` all'interno della cartella del progetto, questo comando costruirà il file jar relativo al progetto all'interno della cartella `Scalable2020/target/scala-2.12` chiamato `Scalable2020.jar`.
-2) Eseguire il comando:
-
-`spark-submit --master local[*] Scalable2020/target/scala-2.12/Scalable2020.jar <argomenti>`
-
+2) Eseguire il comando: 
+	`spark-submit --master local[*] Scalable2020/target/scala-2.12/Scalable2020.jar <argomenti>`
 Gli argomenti da specificare sono descritti in modo dettagliato nelle successive sezioni.
 ### Algoritmi di Non-Overlapping Community Detection
 Per eseguire il test su uno di questi algoritmi è necessario specificare i seguenti argomenti:
