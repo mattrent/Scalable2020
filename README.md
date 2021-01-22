@@ -73,5 +73,5 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 13) Cliccare su Aggiungi fase
 -Selezionare Applicazione Spark come tipologia di fase
 - Selezionare il jar contenuto nel bucket di s3 sul quale si è precedentemente caricata l'applicazione che si intende eseguire
-- Nel campo argomenti specificare, come esempio sono stati utilizzati i seguenti argomenti: `--vertices s3://scalable2020/data/musae_git_target.csv --edges s3://scalable2020/data/musae_git_edges.csv --csv false --simplify false --metrics false --algorithm LPA --steps 20 --metrics false --time false --communities true`
+- Nel campo argomenti specificare, come esempio sono stati utilizzati i seguenti argomenti: `--vertices s3://scalable2020/data/musae_git_target.csv --edges s3://scalable2020/data/musae_git_edges.csv --csv false --simplify false --metrics false --algorithm LPA --steps 20 --metrics false --time true --communities true`
 ![ ](/img/fase_cluster.png  "Configurazione della fase del cluster")
