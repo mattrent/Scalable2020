@@ -32,6 +32,7 @@ Per eseguire il test su uno di questi algoritmi è necessario specificare i segu
 - `--steps <numero_step>`: per specificare il numero di step di Label Propagation.
 - `--metrics  <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algoritmo.
 - `--time  <true|false>`: specificando `true` si richiede il calcolo del tempo necessario per eseguire l'algoritmo, tale tampo di calcolo viene misurato utilizzando`spark.time`.
+- `--communities <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algortmo.
 - `--results  <path_file_output>`: per specificare il file di output.
 ### Analisi di SLPA
 Essendo SLPA l'unico algoritmo di Overlapping Community Detection implementato all'interno di questo progetto si è effettuata solamente un'analisi delle sue prestazioni senza effettuare nessun confronto.
@@ -43,6 +44,33 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 -`--algorithm  SLPA`
 - ` --steps <numero_step>`: per specificare il numero di step di Label Propagation, per SLPA il numero minimo di step è 20 e il numero massimo è 100.
 - `--time  <true|false>`: specificando `true` si richiede il calcolo del tempo necessario per eseguire l'algoritmo, tale tampo di calcolo viene misurato utilizzando `spark.time`.
+- `--communities <true|false>`: specificando `true` si richiede il calcolo del numero di community individuate dall'algortmo.
 - `--results  <path\_file\_output>`: per specificare il file di output.
 - `--r  <valore>`: soglia necessaria per la fase di post-processing dell'algoritmo, il valore di tale soglia è compreso tra [ 0.01, 0.1 ]
 ## Caricamento ed esecuzione su cloud
+1) Eseguire il comando `sbt assembly` all'interno della cartella del progetto, questo comando costruirà il file jar relativo al progetto con tutte le dipendenze all'interno della cartella `Scalable2020/target/scala-2.12` chiamato `Scalable2020-assembly-0.1.jar`.
+2) Connettersi al sito AWS Educate ed effettuare l'accesso
+3) Andare nella sezione AWS Account
+4) Cliccare su AWS Educate Starte Account
+5) Cliccare su AWS Console
+6) Entrare nel servizio s3
+7) Creare un bucket s3 nel seguente modo
+- Cliccare su Crea bucket
+- Inserire il nome del bucket e cliccare sul bottone Crea bucket per completare l'operazione
+8) Fare click sul bucket appena creato ed eseguire i seguenti passaggi:
+- Caricare una caretalla `data` contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: LINK, su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
+-Caricare il file jar `Scalable2020-assembly-0.1.jar` creato al punto 1 e attendere il caricamento completo del file
+![](/home/giulia/Scrivania/s3.png) 
+9) Tornare alla pagina relativa a AWS Console
+10) Selezionare il servizio EMR
+11) Cliccare su Crea cluster
+- Inserire il nome del cluster
+- Selezionare la versione `emr-6.2.0`
+- Selezionare l'applicazione `Spark: Spark 3.0.1 on Hadoop 3.2.1 YARN with and Zeppelin 0.9.0-preview1`
+- Cliccare su Crea cluster
+12) Cliccare sulla sezione Fasi del cluster appena creato
+13) Cliccare su Aggiungi fase
+-Selezionare Applicazione Spark come tipologia di fase
+- Selezionare il jar contenuto nel bucket di s3 sul quale si è precedentemente caricata l'applicazione che si intende eseguire
+- Nel campo argomenti specificare, come esempio sono stati utilizzati i seguenti argomenti: `--vertices s3://scalable2020/data/musae_git_target.csv --edges s3://scalable2020/data/musae_git_edges.csv --csv false --simplify false --metrics false --algorithm LPA --steps 20 --metrics false --time false --communities true`
+
