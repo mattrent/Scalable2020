@@ -51,7 +51,7 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 1) Eseguire il comando `sbt assembly` all'interno della cartella del progetto, questo comando costruirà il file jar relativo al progetto con tutte le dipendenze all'interno della cartella `Scalable2020/target/scala-2.12` chiamato `Scalable2020-assembly-0.1.jar`.
 2) Connettersi al sito AWS Educate ed effettuare l'accesso
 3) Andare nella sezione AWS Account
-4) Cliccare su AWS Educate Starte Account
+4) Cliccare su AWS Educate Starter Account
 5) Cliccare su AWS Console
 6) Entrare nel servizio s3
 7) Creare un bucket s3 nel seguente modo
@@ -75,3 +75,13 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 - Selezionare il jar contenuto nel bucket di s3 sul quale si è precedentemente caricata l'applicazione che si intende eseguire
 - Nel campo argomenti specificare, come esempio sono stati utilizzati i seguenti argomenti: `--vertices s3://scalable2020/data/musae_git_target.csv --edges s3://scalable2020/data/musae_git_edges.csv --csv false --simplify false --metrics false --algorithm LPA --steps 20 --metrics false --time true --communities true`
 ![ ](/img/fase_cluster.png  "Configurazione della fase del cluster")
+14) Una volta completata l'esecuzione sarà possibile vedere il risultato di output andando su s3 ed eseguendo le eseguenti operazioni:
+- Cliccare sul bucket di log
+- Cliccare su elasticmapreduce/
+- Cliccare sulla cartella corrispondente all'identificativo del cluster 
+- Cliccare su containers/
+- Cliccare sulla cartella application relativa alla fase di cui si vuole vedere l'output
+- Cliccare sulla prima cartella container
+- Cliccare sul file stdout.gz
+- Fare click su Operazioni sugli oggetti e selezionare Apri
+![ ](/img/output.png  "Contenuto file di output")
