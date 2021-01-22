@@ -60,7 +60,7 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 8) Fare click sul bucket appena creato ed eseguire i seguenti passaggi:
 - Caricare una caretalla `data` contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: LINK, su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
 -Caricare il file jar `Scalable2020-assembly-0.1.jar` creato al punto 1 e attendere il caricamento completo del file
-![](/home/giulia/Scrivania/s3.png) 
+![](/img/s3_completato.png) 
 9) Tornare alla pagina relativa a AWS Console
 10) Selezionare il servizio EMR
 11) Cliccare su Crea cluster
