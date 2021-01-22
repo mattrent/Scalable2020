@@ -60,7 +60,7 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 8) Fare click sul bucket appena creato ed eseguire i seguenti passaggi:
 - Caricare una caretalla `data` contentente i file relativi al dataset e attendere il caricamento completo del file (all'interno del progetto è stato utilizzato il seguente dataset: LINK, su s3 sono stati caricati i file: `musae_git_edges.csv`, `musae_git_target.csv`)
 -Caricare il file jar `Scalable2020-assembly-0.1.jar` creato al punto 1 e attendere il caricamento completo del file
-![](/img/s3_completato.png) 
+![ ](/home/giulia/Documenti/git/Scalable2020/img/s3_completato.png  "Schermata di caricamento su s3 completato") 
 9) Tornare alla pagina relativa a AWS Console
 10) Selezionare il servizio EMR
 11) Cliccare su Crea cluster
@@ -68,9 +68,10 @@ Per eseguire il test su SLPA è necessario specificare gli argomenti nel seguent
 - Selezionare la versione `emr-6.2.0`
 - Selezionare l'applicazione `Spark: Spark 3.0.1 on Hadoop 3.2.1 YARN with and Zeppelin 0.9.0-preview1`
 - Cliccare su Crea cluster
+![ ](/home/giulia/Documenti/git/Scalable2020/img/configurazione_cluster.png  "Configurazione del cluster ")
 12) Cliccare sulla sezione Fasi del cluster appena creato
 13) Cliccare su Aggiungi fase
 -Selezionare Applicazione Spark come tipologia di fase
 - Selezionare il jar contenuto nel bucket di s3 sul quale si è precedentemente caricata l'applicazione che si intende eseguire
 - Nel campo argomenti specificare, come esempio sono stati utilizzati i seguenti argomenti: `--vertices s3://scalable2020/data/musae_git_target.csv --edges s3://scalable2020/data/musae_git_edges.csv --csv false --simplify false --metrics false --algorithm LPA --steps 20 --metrics false --time false --communities true`
-
+![ ](/home/giulia/Documenti/git/Scalable2020/img/fase_cluster.png  "Configurazione della fase del cluster")
